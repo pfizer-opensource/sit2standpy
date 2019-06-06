@@ -257,7 +257,7 @@ class StillnessDetector:
                 if (time[ppk] - time[prev_still]) > 3 * (time[next_pk] - time[ppk]):
                     continue
                 elif len(sts) > 0:  # check that it doesn't overlap the previous STS transition
-                    if (time[prev_still] - sts[-1][1]) < 1:  # 1s "cooldown" between STS transitions
+                    if (time[prev_still] - sts[-1][1]) < 0.75:  # 0.75s "cooldown" between STS transitions
                         continue
             except IndexError:
                 continue
@@ -489,7 +489,7 @@ class SimilarityDetector:
                 continue
             # ensure that there is no overlap with previously detected transitions
             if len(sts) > 0:
-                if (time[prev2_stop] - sts[-1][1]) < 1:  # 1s cooldown on STS transitions
+                if (time[prev2_stop] - sts[-1][1]) < 0.75:  # 0.75s cooldown on STS transitions
                     continue
 
             sts.append((time[prev2_stop], time[next_pk]))
