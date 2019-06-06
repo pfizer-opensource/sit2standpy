@@ -100,6 +100,3 @@ class AccFilter:
             macc_r, _, _ = u_.mov_stats(macc_f, n_window)  # compute the moving average
 
         return macc_f, macc_r[:macc_f.size]
-
-def test():
-    pass
