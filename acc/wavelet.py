@@ -365,14 +365,16 @@ class StillnessDetector:
 
 
 class SimilarityDetector:
-    def __init__(self, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0, similarity_rtol=0.15,
-                 tr_pk_diff=0.5, acc_peak_params=None, acc_trough_params=None):
+    def __init__(self, gravity_value=9.81, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0,
+                 similarity_rtol=0.15, tr_pk_diff=0.5, start_pos='fixed', acc_peak_params=None, acc_trough_params=None):
         """
         Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
         in different power bands
 
         Parameters
         ----------
+        gravity_value : float, optional
+            Value of gravitational acceleration of the sensor during still standing or sitting. Default is 9.81m/s^2.
         low_f_band : {array_like, float, int}, optional
             Low frequency limits for the low freq. power band, obtained by summing CWT coefficients in this band of
             frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
@@ -388,6 +390,9 @@ class SimilarityDetector:
         tr_pk_diff : float, optional
             Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
             time for the STS transitions. Default is 0.5 m/s^2.
+        start_pos : {'fixed', 'variable'}, optional
+            How the start of STS transitions is determed. Either a fixed location, or can be variable among several
+            possible locations, and the best location is chosen. Default is 'fixed'
         acc_peak_params : {None, dict}, optional
             Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
             acceleration magnitude. Default is None, for which the find_peaks defaults will be used.
@@ -396,6 +401,8 @@ class SimilarityDetector:
             (local minima) in the acceleration magnitude. Default is None, for which the find_peaks defaults will be
             used.
         """
+        self.gravity = gravity_value
+
         if isinstance(low_f_band, (float, int)):
             self.low_f = [0, low_f_band]
         else:
@@ -409,6 +416,11 @@ class SimilarityDetector:
         self.sim_rtol = similarity_rtol
 
         self.tp_diff = tr_pk_diff
+
+        if start_pos == 'fixed' or start_pos == 'variable':
+            self.start_pos = start_pos
+        else:
+            raise ValueError('start_pos must be either "fixed" or "variable".')
 
         if acc_peak_params is None:
             self.acc_pk_kw = {}
@@ -486,22 +498,27 @@ class SimilarityDetector:
             # find the second previous stop of similarity in the power bands
             try:
                 prev2_stop = stops[stops < ppk][-2]
-                prev_start = sim_starts[sim_starts > prev2_stop][0]
-                if npabs(mag_acc[prev2_stop] - 9.81) < npabs(mag_acc[prev_start] - 9.81):
-                    start = prev2_stop
-                    alt_start = prev_start
+                if self.start_pos == 'variable':
+                    prev_start = sim_starts[sim_starts > prev2_stop][0]
+                    if npabs(mag_acc[prev2_stop] - self.gravity) < npabs(mag_acc[prev_start] - self.gravity):
+                        start = prev2_stop
+                        alt_start = prev_start
+                    else:
+                        start = prev_start
+                        alt_start = None
                 else:
-                    start = prev_start
-                    alt_start = -100
+                    start = prev2_stop
+                    alt_start = None
             except IndexError:
                 continue
             # ensure that there is no overlap with previously detected transitions
             if len(sts) > 0:
                 if (time[start] - sts[-1][1]) < 0.5:  # 0.75s cooldown on STS transitions
-                    if npabs(time[alt_start] - sts[-1][0]) < 0.5:
-                        continue
-                    else:
-                        start = alt_start
+                    if alt_start is not None:
+                        if npabs(time[alt_start] - sts[-1][0]) < 0.5:
+                            continue
+                        else:
+                            start = alt_start
             sts.append((time[start], time[next_pk]))
 
         return sts, {'plot': similar}
