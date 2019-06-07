@@ -495,6 +495,9 @@ class SimilarityDetector:
                     next_pk = acc_pks[acc_pks > next_tr][1]
             except IndexError:
                 continue
+            # make sure ppk to stop isn't too long
+            if (time[next_pk] - time[ppk]) > 2:
+                continue
             # find the second previous stop of similarity in the power bands
             try:
                 prev2_stop = stops[stops < ppk][-2]
@@ -515,7 +518,7 @@ class SimilarityDetector:
             if len(sts) > 0:
                 if (time[start] - sts[-1][1]) < 0.5:  # 0.75s cooldown on STS transitions
                     if alt_start is not None:
-                        if npabs(time[alt_start] - sts[-1][0]) < 0.5:
+                        if (time[alt_start] - sts[-1][1]) < 0.5:
                             continue
                         else:
                             start = alt_start
