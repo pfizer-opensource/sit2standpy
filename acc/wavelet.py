@@ -465,6 +465,7 @@ class SimilarityDetector:
 
         # find the stops in similarity
         stops = where(diff(similar.astype(int)) == -1)[0]
+        sim_starts = where(diff(similar.astype(int)) == 1)[0]
 
         # iterate over the detected power peaks and determine STS locations
         sts = []
@@ -485,13 +486,22 @@ class SimilarityDetector:
             # find the second previous stop of similarity in the power bands
             try:
                 prev2_stop = stops[stops < ppk][-2]
+                prev_start = sim_starts[sim_starts > prev2_stop][0]
+                if npabs(mag_acc[prev2_stop] - 9.81) < npabs(mag_acc[prev_start] - 9.81):
+                    start = prev2_stop
+                    alt_start = prev_start
+                else:
+                    start = prev_start
+                    alt_start = -100
             except IndexError:
                 continue
             # ensure that there is no overlap with previously detected transitions
             if len(sts) > 0:
-                if (time[prev2_stop] - sts[-1][1]) < 0.5:  # 0.75s cooldown on STS transitions
-                    continue
-
-            sts.append((time[prev2_stop], time[next_pk]))
+                if (time[start] - sts[-1][1]) < 0.5:  # 0.75s cooldown on STS transitions
+                    if npabs(time[alt_start] - sts[-1][0]) < 0.5:
+                        continue
+                    else:
+                        start = alt_start
+            sts.append((time[start], time[next_pk]))
 
         return sts, {'plot': similar}
