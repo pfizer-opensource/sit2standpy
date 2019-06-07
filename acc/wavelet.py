@@ -250,6 +250,9 @@ class StillnessDetector:
                     next_pk = acc_pks[acc_pks > next_tr][1]
             except IndexError:
                 continue
+            # make sure that the time between power peak and next signal peak isn't unreasonable
+            if time[next_pk] - time[ppk] > 2:
+                continue
             # find the end of the previous period of stillness
             try:
                 prev_still = still_stops[still_stops < ppk][-1]  # find the end of the previous still period
