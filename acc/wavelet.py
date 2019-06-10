@@ -88,13 +88,13 @@ class Wavelet:
 
         # sum the CWT coefficients over the set of frequencies specified in the peak power band
         f_mask = logical_and(self.freqs <= self.pk_pwr_stop, self.freqs >= self.pk_pwr_start)
-        power = npsum(self.coefs[f_mask, :], axis=0)
+        self.power = npsum(self.coefs[f_mask, :], axis=0)
 
         # find the peaks in the power data
-        pwr_pks, _ = find_peaks(power, **self.pk_pwr_par)
+        self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
-        sts, ext = detector.apply(self.macc_f, self.macc_r, time, dt, pwr_pks, self.coefs, self.freqs)
+        sts, ext = detector.apply(self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
 
         return sts
 
