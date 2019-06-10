@@ -17,7 +17,7 @@ plt.style.use(['ggplot', 'presentation'])
 
 
 class Wavelet:
-    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, plot=False):
+    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None):
         """
         Wavelet based detection of sit-to-stand transitions
 
@@ -33,8 +33,6 @@ class Wavelet:
         peak_pwr_par : {None, dict}, optional
             Extra parameters (key-word arguments) to pass to scipy.signal.find_peaks when finding peaks in the
             summed CWT coefficient power band data. Default is None, which will use the dictionary {'height': 95}.
-        plot : bool, optional
-            Plot the resulting signals and parts of the decision process. Default is False.
         """
         self.cwave = continuous_wavelet  # TODO add checks this is a valid wavelet
 
@@ -50,9 +48,7 @@ class Wavelet:
         else:
             self.pk_pwr_par = peak_pwr_par
 
-        self.plot = plot
-
-    def fit(self, accel, time, detector, acc_filter):  # TODO provide default AccFilter as default option?
+    def fit(self, accel, time, detector, acc_filter):
         """
         Fit the data and determine sit-to-stand transitions start and stop times.
 
@@ -80,59 +76,25 @@ class Wavelet:
         sts : list
             List of tuples of (STS start, STS end) for all of the detected STS transitions in the acceleration data.
         """
-        # calculate the sampling frequency and time
+        # calculate the sampling time and frequency
         dt = mean(diff(time))
         fs = 1 / dt
 
         # filter the raw acceleration using the AccFilter object
-        macc_f, macc_r = acc_filter.apply(accel, fs)
+        self.macc_f, self.macc_r = acc_filter.apply(accel, fs)
 
         # compute the continuous wavelet transform on the reconstructed acceleration data
-        coefs, freqs = pywt.cwt(macc_r, arange(1, 65), self.cwave, sampling_period=dt)
+        self.coefs, self.freqs = pywt.cwt(self.macc_r, arange(1, 65), self.cwave, sampling_period=dt)
 
         # sum the CWT coefficients over the set of frequencies specified in the peak power band
-        f_mask = logical_and(freqs <= self.pk_pwr_stop, freqs >= self.pk_pwr_start)
-        power = npsum(coefs[f_mask, :], axis=0)
+        f_mask = logical_and(self.freqs <= self.pk_pwr_stop, self.freqs >= self.pk_pwr_start)
+        power = npsum(self.coefs[f_mask, :], axis=0)
 
         # find the peaks in the power data
         pwr_pks, _ = find_peaks(power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
-        sts, ext = detector.apply(macc_f, macc_r, time, dt, pwr_pks, coefs, freqs)
-
-        if self.plot:
-            self.f, (self.ax1, self.ax2) = plt.subplots(nrows=2, ncols=1, figsize=(20, 8), sharex=True)
-
-            rh, = self.ax1.plot(time, norm(accel, axis=1), color='C0', alpha=0.5, label='Raw accel.')
-            fh, = self.ax1.plot(time, macc_f, color='C1', label='Filt. accel.')
-            reh, = self.ax1.plot(time, macc_r, color='C5', label='Recon. accel.')
-
-            if 'plot' in ext.keys():
-                self.ax2.plot(time[ext['plot']], macc_f[ext['plot']], 'ko')
-            self.ax2.plot(time, macc_f, color='C1')
-            ax2x = self.ax2.twinx()
-            self.ax2.grid(False)
-            ph, = ax2x.plot(time, power, color='C4', label='Power')
-            ax2x.plot(time[pwr_pks], power[pwr_pks], 'o', color='w')
-
-            # highlight the detected STS transitions
-            for tr in sts:
-                self.ax1.axvspan(tr[0], tr[1], color='k', alpha=0.3)
-                self.ax2.axvspan(tr[0], tr[1], color='k', alpha=0.3)
-            stsh = Patch(label='SiSt', color='k', alpha=0.3)
-
-            # one overall legend
-            self.handles = [stsh, rh, fh, reh, ph]
-            self.ax1.legend(handles=self.handles, loc=1, fancybox=True, ncol=3)
-
-            # some axes titles
-            self.ax1.set_ylabel(r'Accel. [$\frac{m}{s^2}$]')
-            self.ax2.set_ylabel(r'Accel. [$\frac{m}{s^2}$]')
-            ax2x.set_ylabel('Power')
-            self.ax2.set_xlabel('Time [s]')
-
-            self.f.tight_layout()
-            self.f.subplots_adjust(hspace=0)
+        sts, ext = detector.apply(self.macc_f, self.macc_r, time, dt, pwr_pks, self.coefs, self.freqs)
 
         return sts
 
