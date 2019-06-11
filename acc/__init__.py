@@ -1,1 +1,1 @@
-from pysit2stand.acc.wavelet import Wavelet, StillnessDetector, SimilarityDetector
+from pysit2stand.acc.wavelet import Wavelet, StillnessDetector, SimilarityDetector, PositionDetector

@@ -4,12 +4,14 @@ Wavelet based methods of detecting postural transitions
 Lukas Adamowicz
 June 2019
 """
-from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose
+from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose, \
+    append, sign
 from numpy.linalg import norm
-from scipy.signal import find_peaks
+from scipy.signal import find_peaks, butter, filtfilt, detrend
+from scipy.integrate import cumtrapz
 import pywt
 import matplotlib.pyplot as plt
-from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
 
 from pysit2stand import utility as u_
 
@@ -94,7 +96,7 @@ class Wavelet:
         self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
-        sts, ext = detector.apply(self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
+        sts, self.ext = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
 
         return sts
 
@@ -157,7 +159,7 @@ class StillnessDetector:
         else:
             self.acc_tr_kw = acc_trough_params
 
-    def apply(self, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         """
         Apply the stillness-based STS detection to the given data
 
@@ -396,7 +398,7 @@ class SimilarityDetector:
         else:
             self.acc_tr_kw = acc_trough_params
 
-    def apply(self, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         """
         Apply the stillness-based STS detection to the given data
 
@@ -490,3 +492,144 @@ class SimilarityDetector:
             sts.append((time[start], time[next_pk]))
 
         return sts, {'plot': similar}
+
+
+class PositionDetector:
+    def __init__(self, gravity=9.81, grav_pass_ord=4, grav_pass_cut=0.8, still_window=0.5, mov_window=0.3,
+                 mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3, jerk_mov_std_thresh=5):
+        self.grav = gravity
+
+        self.grav_ord = grav_pass_ord
+        self.grav_cut = grav_pass_cut
+        self.still_wind = still_window
+
+        self.mov_wind = mov_window
+
+        self.avg_thresh = mov_avg_thresh
+        self.std_thresh = mov_std_thresh
+        self.j_avg_thresh = jerk_mov_avg_thresh
+        self.j_std_thresh = jerk_mov_std_thresh
+
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        # get the estimate of gravity
+        b, a = butter(self.grav_ord, 2 * self.grav_cut * dt)
+        grav_est = filtfilt(b, a, raw_acc, axis=0)
+        grav_est /= norm(grav_est, axis=1, keepdims=True)  # normalize the gravity estimate
+        # compute the vertical acceleration
+        v_acc = npsum(grav_est * raw_acc, axis=1)
+
+        # find still periods in the data
+        acc_still, stops = PositionDetector._stillness(mag_acc, dt, self.mov_wind, self.grav, self.avg_thresh,
+                                                       self.std_thresh, self.j_avg_thresh, self.j_std_thresh)
+        if acc_still[-1]:
+            stops = append(stops, acc_still.size)
+        starts = where(diff(acc_still.astype(int)) == 1)[0]
+        if acc_still[0]:
+            starts = append(0, starts)
+
+        # determine where the stillness durations are over the threshold
+        n_still = self.still_wind / dt  # window size in samples
+        durs = stops - starts  # length in samples
+
+        long_start = starts[durs > n_still]
+        long_stop = stops[durs > n_still]
+
+        # iterate over the power peaks
+        sts = []
+        for ppk in power_peaks:
+            # find the mid-points of the previous and next long still sections
+            int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
+            int_start = int_start if int_start > 0 else 0  # make sure that its greater than 0
+
+            int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
+            int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
+
+            v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], dt)
+
+            pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
+            neg_zc = where(diff(sign(v_vel)) < 0)[0] + int_start  # positive -> negative zero crossing
+
+            prev_pos = pos_zc[pos_zc < ppk]
+            if len(prev_pos) > 0:
+                start = pos_zc[pos_zc < ppk][-1]
+            else:
+                continue
+            next_neg = neg_zc[neg_zc > ppk]
+            if len(next_neg) > 0:
+                end = neg_zc[neg_zc > ppk][0]
+            else:
+                continue
+
+            if (time[end] - time[start]) < 4:
+                if len(sts) > 0:
+                    if time[start] > sts[-1][1]:
+                        sts.append((time[start], time[end]))
+                else:
+                    sts.append((time[start], time[end]))
+
+        # some stuff for plotting
+        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
+
+        return sts, {'lines': [l1]}
+
+    @staticmethod
+    def _get_position(v_acc, dt):
+        # integrate the vertical acceleration and detrend
+        v_vel = detrend(cumtrapz(v_acc, dx=dt))
+
+        # integrate the vertical velocity and detrend
+        v_pos = detrend(cumtrapz(v_vel, dx=dt))
+
+        return v_pos, v_vel
+
+    @staticmethod
+    def _stillness(mag_acc_f, dt, window, gravity, acc_mov_avg_thresh, acc_mov_std_thresh, jerk_mov_avg_thresh,
+                   jerk_mov_std_thresh):
+        """
+        Stillness determination of acceleration magnitude data
+
+        Parameters
+        ----------
+        mag_acc_f : numpy.ndarray
+            (N, 3) array of filtered acceleration data.
+        dt : float
+            Sampling time difference, in seconds.
+        window : float
+            Moving statistics window length, in seconds.
+        gravity : float
+            Gravitational acceleration, as measured by the sensor during static sitting or standing.
+        acc_mov_avg_thresh : float
+            Acceleration moving average threshold, used for determining stillness.
+        acc_mov_std_thresh : float
+            Acceleration moving standard deviation threshold, used for determining stillness.
+        jerk_mov_avg_thresh : float
+            Jerk moving average threshold, used for determining stillness.
+        jerk_mov_std_thresh : float
+            Jerk moving standard deviation threshold, used for determining stillness.
+
+        Returns
+        -------
+        acc_still : numpy.ndarray
+            (N, ) boolean array indicating stillness
+        stops : numpy.ndarray
+            (P, ) array of where stillness ends, where by necessity has to follow: P < N / 2
+        """
+        # calculate the sample window from the time window
+        n_window = int(around(window / dt))
+        # compute the acceleration moving standard deviation
+        am_avg, am_std, _ = u_.mov_stats(mag_acc_f, n_window)
+        # compute the jerk
+        jerk = gradient(mag_acc_f, dt, edge_order=2)
+        # compute the jerk moving average and standard deviation
+        jm_avg, jm_std, _ = u_.mov_stats(jerk, n_window)
+
+        # create masks from the moving statistics of acceleration and jerk
+        am_avg_mask = npabs(am_avg - gravity) < acc_mov_avg_thresh
+        am_std_mask = am_std < acc_mov_std_thresh
+        jm_avg_mask = npabs(jm_avg) < jerk_mov_avg_thresh
+        jm_std_mask = jm_std < jerk_mov_std_thresh
+
+        acc_still = am_avg_mask & am_std_mask & jm_avg_mask & jm_std_mask
+        stops = where(diff(acc_still.astype(int)) == -1)[0]
+
+        return acc_still, stops
