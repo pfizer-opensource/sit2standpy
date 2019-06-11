@@ -539,6 +539,8 @@ class PositionDetector:
         sts = []
         # save the last integrated velocity
         pint_start, pint_stop = 0, 0
+        # plotting
+        pos_lines = []
         # iterate over the power peaks
         for ppk in power_peaks:
             # find the mid-points of the previous and next long still sections
@@ -562,6 +564,7 @@ class PositionDetector:
 
             if pint_stop < int_start or pint_stop < int_stop:
                 v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], dt)
+                pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
             pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
             neg_zc = where(diff(sign(v_vel)) < 0)[0] + int_start  # positive -> negative zero crossing
@@ -589,15 +592,15 @@ class PositionDetector:
         # some stuff for plotting
         l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
 
-        return sts, {'lines': [l1]}
+        return sts, {'lines': [l1], 'pos lines': pos_lines}
 
     @staticmethod
     def _get_position(v_acc, dt):
         # integrate the vertical acceleration and detrend
-        v_vel = detrend(cumtrapz(v_acc, dx=dt))
+        v_vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
 
         # integrate the vertical velocity and detrend
-        v_pos = detrend(cumtrapz(v_vel, dx=dt))
+        v_pos = detrend(cumtrapz(v_vel, dx=dt, initial=0))
 
         return v_pos, v_vel
 
