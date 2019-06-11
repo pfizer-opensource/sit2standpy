@@ -542,10 +542,22 @@ class PositionDetector:
         # iterate over the power peaks
         for ppk in power_peaks:
             # find the mid-points of the previous and next long still sections
-            int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
+            try:
+                int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
+            except IndexError:
+                try:
+                    int_start = starts[stops < ppk][-1]
+                except IndexError:
+                    int_start = ppk - int(2.5 / dt)
             int_start = int_start if int_start > 0 else 0  # make sure that its greater than 0
 
-            int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
+            try:
+                int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
+            except IndexError:
+                try:
+                    int_stop = stops[starts > ppk][0]
+                except IndexError:
+                    int_stop = ppk + int(2.5 / dt)
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
@@ -554,15 +566,13 @@ class PositionDetector:
             pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
             neg_zc = where(diff(sign(v_vel)) < 0)[0] + int_start  # positive -> negative zero crossing
 
-            prev_pos = pos_zc[pos_zc < ppk]
-            if len(prev_pos) > 0:
+            try:
                 start = pos_zc[pos_zc < ppk][-1]
-            else:
+            except IndexError:
                 continue
-            next_neg = neg_zc[neg_zc > ppk]
-            if len(next_neg) > 0:
+            try:
                 end = neg_zc[neg_zc > ppk][0]
-            else:
+            except IndexError:
                 continue
 
             if (time[end] - time[start]) < 4:
