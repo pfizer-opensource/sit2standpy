@@ -495,9 +495,11 @@ class SimilarityDetector:
 
 
 class PositionDetector:
-    def __init__(self, gravity=9.81, grav_pass_ord=4, grav_pass_cut=0.8, still_window=0.5, mov_window=0.3,
-                 mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3, jerk_mov_std_thresh=5):
+    def __init__(self, gravity=9.81, heigh_thresh=0.15, grav_pass_ord=4, grav_pass_cut=0.8, still_window=0.5,
+                 mov_window=0.3, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3, jerk_mov_std_thresh=5):
         self.grav = gravity
+
+        self.height = heigh_thresh
 
         self.grav_ord = grav_pass_ord
         self.grav_cut = grav_pass_cut
@@ -561,11 +563,12 @@ class PositionDetector:
                 continue
 
             if (time[end] - time[start]) < 4:
-                if len(sts) > 0:
-                    if time[start] > sts[-1][1]:
+                if (v_pos[end - int_start] - v_pos[start - int_start]) > self.height:
+                    if len(sts) > 0:
+                        if time[start] > sts[-1][1]:
+                            sts.append((time[start], time[end]))
+                    else:
                         sts.append((time[start], time[end]))
-                else:
-                    sts.append((time[start], time[end]))
 
         # some stuff for plotting
         l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
