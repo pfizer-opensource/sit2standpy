@@ -536,8 +536,10 @@ class PositionDetector:
         long_start = starts[durs > n_still]
         long_stop = stops[durs > n_still]
 
-        # iterate over the power peaks
         sts = []
+        # save the last integrated velocity
+        pint_start, pint_stop = 0, 0
+        # iterate over the power peaks
         for ppk in power_peaks:
             # find the mid-points of the previous and next long still sections
             int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
@@ -546,7 +548,8 @@ class PositionDetector:
             int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
-            v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], dt)
+            if pint_stop < int_start or pint_stop < int_stop:
+                v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], dt)
 
             pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
             neg_zc = where(diff(sign(v_vel)) < 0)[0] + int_start  # positive -> negative zero crossing
@@ -569,6 +572,9 @@ class PositionDetector:
                             sts.append((time[start], time[end]))
                     else:
                         sts.append((time[start], time[end]))
+
+            pint_start = int_start
+            pint_stop = int_stop
 
         # some stuff for plotting
         l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
