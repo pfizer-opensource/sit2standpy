@@ -44,21 +44,7 @@ def mov_stats(seq, window):
 
     m_mn[pad:-pad + 1] = mean(rw_seq, axis=-1)
     m_st[pad:-pad + 1] = std(rw_seq, axis=-1, ddof=1)
-    """
-    # OLD METHOD
-    # compute first window stats
-    m_mn[pad] = mean(seq[:window], axis=0)
-    m_st[pad] = std(seq[:window], axis=0, ddof=1)**2  # ddof of 1 indicates sample standard deviation, no population
 
-    # compute moving mean and standard deviation
-    for i in range(1, seq.shape[0] - window):
-        diff_fl = seq[window + i - 1] - seq[i - 1]  # difference in first and last elements of sliding window
-        m_mn[pad + i] = m_mn[pad + i - 1] + diff_fl / window
-        m_st[pad + i] = m_st[pad + i - 1] + (seq[window + i - 1] - m_mn[pad + i] + seq[i - 1] -
-                                             m_mn[pad + i - 1]) * diff_fl / (window - 1)
-
-    m_st = sqrt(abs(m_st))  # added absolute value to ensure that any round off error doesn't effect the results
-    """
     m_mn[:pad], m_mn[-pad:] = m_mn[pad], m_mn[-pad-1]
     m_st[:pad], m_st[-pad:] = m_st[pad], m_st[-pad-1]
     return m_mn, m_st, pad

@@ -496,11 +496,14 @@ class SimilarityDetector:
 
 
 class PositionDetector:
-    def __init__(self, gravity=9.81, heigh_thresh=0.15, grav_pass_ord=4, grav_pass_cut=0.8, still_window=0.5,
-                 mov_window=0.3, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3, jerk_mov_std_thresh=5):
+    def __init__(self, gravity=9.81, heigh_thresh=0.15, vel_thresh=0.1, grav_pass_ord=4, grav_pass_cut=0.8,
+                 still_window=0.5, mov_window=0.3, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
+                 jerk_mov_std_thresh=5):
         self.grav = gravity
 
         self.height = heigh_thresh
+
+        self.vel_thresh = vel_thresh
 
         self.grav_ord = grav_pass_ord
         self.grav_cut = grav_pass_cut
@@ -560,22 +563,23 @@ class PositionDetector:
                 try:
                     int_stop = stops[starts > ppk][0]
                 except IndexError:
-                    int_stop = ppk + int(2.5 / dt)
+                    int_stop = ppk + int(10 / dt)
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
                 v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
-            pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
-            neg_zc = where(diff(sign(v_vel)) < 0)[0] + int_start  # positive -> negative zero crossing
+            v_still = npabs(v_vel) < self.vel_thresh
+            vs_start = where(diff(v_still.astype(int)) == 1)[0] + int_start
+            vs_stop = where(diff(v_still.astype(int)) == -1)[0] + int_start
 
             try:
-                start = pos_zc[pos_zc < ppk][-1]
+                start = vs_stop[vs_stop < ppk][-1]
             except IndexError:
                 continue
             try:
-                end = neg_zc[neg_zc > ppk][0]
+                end = vs_start[vs_start > ppk][0]
             except IndexError:
                 continue
 
@@ -600,8 +604,8 @@ class PositionDetector:
         x = arange(v_acc.size)
         # integrate the vertical acceleration and detrend
         v_vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
-        # set the still sections to 0 if the velocity is less than threshold
-        v_vel[still][npabs(v_vel[still]) < 0.25] = 0
+        m, b, _, _, _ = linregress(x[still], v_vel[still])
+        v_vel -= (m * x + b)
 
         # integrate the vertical velocity
         v_pos = cumtrapz(v_vel, dx=dt, initial=0)
