@@ -602,18 +602,14 @@ class PositionDetector:
     @staticmethod
     def _get_position(v_acc, still, dt):
         x = arange(v_acc.size)
-        # integrate the vertical acceleration and detrend
-        v_vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
-        m, b, _, _, _ = linregress(x[still], v_vel[still])
-        v_vel -= (m * x + b)
+        # filter and then integrate the vertical acceleration
+        b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
+        vel = cumtrapz(filtfilt(b, a, v_acc, padtype=None), dx=dt, initial=0)
 
-        # integrate the vertical velocity
-        v_pos = cumtrapz(v_vel, dx=dt, initial=0)
-        # detrend based on the still sections only
-        m, b, _, _, _ = linregress(x[still], v_pos[still])
-        v_pos -= (m * x + b)
+        # compute the position
+        pos = cumtrapz(vel, dx=dt, initial=0)
 
-        return v_pos, v_vel
+        return pos, vel
 
     @staticmethod
     def _stillness(mag_acc_f, dt, window, gravity, acc_mov_avg_thresh, acc_mov_std_thresh, jerk_mov_avg_thresh,
