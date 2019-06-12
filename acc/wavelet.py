@@ -603,7 +603,7 @@ class PositionDetector:
     def _get_position(v_acc, still, dt):
         x = arange(v_acc.size)
         # filter and then integrate the vertical acceleration
-        b, a = butter(1, [2 * 0.5 * dt, 2 * 15 * dt], btype='band')
+        b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
         vel = cumtrapz(filtfilt(b, a, v_acc, padtype=None), dx=dt, initial=0)
 
         # compute the position
