@@ -5,7 +5,7 @@ Lukas Adamowicz
 June 2019
 """
 from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose, \
-    append, sign
+    append, sign, zeros
 from numpy.linalg import norm
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 from scipy.integrate import cumtrapz
@@ -598,11 +598,10 @@ class PositionDetector:
     @staticmethod
     def _get_position(v_acc, still, dt):
         x = arange(v_acc.size)
-        # integrate the vertical acceleration
-        v_vel = cumtrapz(v_acc, dx=dt, initial=0)
-        # detrend based on the still sections only
-        m, b, _, _, _ = linregress(x[still], v_vel[still])
-        v_vel -= (m * x + b)
+        # integrate the vertical acceleration and detrend
+        v_vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
+        # set the still sections to 0 if the velocity is less than threshold
+        v_vel[still][npabs(v_vel[still]) < 0.25] = 0
 
         # integrate the vertical velocity
         v_pos = cumtrapz(v_vel, dx=dt, initial=0)
