@@ -9,6 +9,7 @@ from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, g
 from numpy.linalg import norm
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 from scipy.integrate import cumtrapz
+from scipy.stats import linregress
 import pywt
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -563,7 +564,7 @@ class PositionDetector:
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
-                v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], dt)
+                v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
             pos_zc = where(diff(sign(v_vel)) > 0)[0] + int_start  # negative -> positive zero crossing
@@ -595,12 +596,19 @@ class PositionDetector:
         return sts, {'lines': [l1], 'pos lines': pos_lines}
 
     @staticmethod
-    def _get_position(v_acc, dt):
-        # integrate the vertical acceleration and detrend
-        v_vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
+    def _get_position(v_acc, still, dt):
+        x = arange(v_acc.size)
+        # integrate the vertical acceleration
+        v_vel = cumtrapz(v_acc, dx=dt, initial=0)
+        # detrend based on the still sections only
+        m, b, _, _, _ = linregress(x[still], v_vel[still])
+        v_vel -= (m * x + b)
 
-        # integrate the vertical velocity and detrend
-        v_pos = detrend(cumtrapz(v_vel, dx=dt, initial=0))
+        # integrate the vertical velocity
+        v_pos = cumtrapz(v_vel, dx=dt, initial=0)
+        # detrend based on the still sections only
+        m, b, _, _, _ = linregress(x[still], v_pos[still])
+        v_pos -= (m * x + b)
 
         return v_pos, v_vel
 
