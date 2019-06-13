@@ -601,10 +601,11 @@ class PositionDetector:
 
     @staticmethod
     def _get_position(v_acc, still, dt):
+        rvacc, _, _ = u_.mov_stats(v_acc, 16)
         x = arange(v_acc.size)
         # filter and then integrate the vertical acceleration
         # b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
-        vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
+        vel = detrend(cumtrapz(rvacc, dx=dt, initial=0))
         m, b, _, _, _ = linregress(x[still], vel[still])
         vel -= (m * x + b)
 
