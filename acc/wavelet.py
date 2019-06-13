@@ -540,12 +540,6 @@ class PositionDetector:
         long_start = starts[durs > n_still]
         long_stop = stops[durs > n_still]
 
-        """
-        Peaks/troughs in accel
-        """
-        pk, _ = find_peaks(mag_acc_r, height=9)
-        tr, _ = find_peaks(-mag_acc_r, height=-9)
-
         sts = []
         # save the last integrated velocity
         pint_start, pint_stop = 0, 0
@@ -610,9 +604,7 @@ class PositionDetector:
         x = arange(v_acc.size)
         # filter and then integrate the vertical acceleration
         b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
-        vel = detrend(cumtrapz(filtfilt(b, a, v_acc), dx=dt, initial=0))
-        # m, b, _, _, _ = linregress(x[still], vel[still])
-        # vel -= (m * x + b)
+        vel = cumtrapz(filtfilt(b, a, v_acc, padtype=None), dx=dt, initial=0)
 
         # compute the position
         pos = cumtrapz(vel, dx=dt, initial=0)
