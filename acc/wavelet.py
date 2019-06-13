@@ -544,7 +544,7 @@ class PositionDetector:
         Peaks/troughs in accel
         """
         pk, _ = find_peaks(mag_acc_r, height=9)
-        tr, _ = find_peaks(-mag_acc_r, height=9)
+        tr, _ = find_peaks(-mag_acc_r, height=-9)
 
         sts = []
         # save the last integrated velocity
@@ -554,48 +554,38 @@ class PositionDetector:
         # iterate over the power peaks
         for ppk in power_peaks:
             # find the mid-points of the previous and next long still sections
-            # try:
-            #     int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
-            # except IndexError:
-            #     try:
-            #         int_start = starts[stops < ppk][-1]
-            #     except IndexError:
-            #         int_start = ppk - int(2.5 / dt)
             try:
-                int_start = stops[stops < ppk][-1]
+                int_start = int(long_stop[long_stop < ppk][-1] - n_still / 2)
             except IndexError:
-                int_start = int(ppk - 2.5 / dt)
+                try:
+                    int_start = starts[stops < ppk][-1]
+                except IndexError:
+                    int_start = ppk - int(2.5 / dt)
             int_start = int_start if int_start > 0 else 0  # make sure that its greater than 0
 
-            # try:
-            #     int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
-            # except IndexError:
-            #     try:
-            #         int_stop = stops[starts > ppk][0]
-            #     except IndexError:
-            #         int_stop = ppk + int(10 / dt)
             try:
-                int_stop = pk[pk > (tr[tr > ppk][0])][0]
+                int_stop = int(long_start[long_start > ppk][0] + n_still / 2)
             except IndexError:
-                int_stop = int(ppk + 2.5/dt)
+                try:
+                    int_stop = stops[starts > ppk][0]
+                except IndexError:
+                    int_stop = ppk + int(10 / dt)
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
                 v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
-            # v_still = npabs(v_vel) < self.vel_thresh
-            # vs_start = where(diff(v_still.astype(int)) == 1)[0] + int_start
-            # vs_stop = where(diff(v_still.astype(int)) == -1)[0] + int_start
-            pos_zc = where(diff(sign(v_vel)) == 1)[0]
-            neg_zc = where(diff(sign(v_vel)) == -1)[0]
+            v_still = npabs(v_vel) < self.vel_thresh
+            vs_start = where(diff(v_still.astype(int)) == 1)[0] + int_start
+            vs_stop = where(diff(v_still.astype(int)) == -1)[0] + int_start
 
             try:
-                start = pos_zc[pos_zc < ppk][-1]
+                start = vs_stop[vs_stop < ppk][-1]
             except IndexError:
                 continue
             try:
-                end = neg_zc[neg_zc > ppk][0]
+                end = vs_start[vs_start > ppk][0]
             except IndexError:
                 continue
 
@@ -619,10 +609,10 @@ class PositionDetector:
     def _get_position(v_acc, still, dt):
         x = arange(v_acc.size)
         # filter and then integrate the vertical acceleration
-        # b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
-        vel = detrend(cumtrapz(v_acc, dx=dt, initial=0))
-        m, b, _, _, _ = linregress(x[still], vel[still])
-        vel -= (m * x + b)
+        b, a = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
+        vel = detrend(cumtrapz(filtfilt(b, a, v_acc), dx=dt, initial=0))
+        # m, b, _, _, _ = linregress(x[still], vel[still])
+        # vel -= (m * x + b)
 
         # compute the position
         pos = cumtrapz(vel, dx=dt, initial=0)
