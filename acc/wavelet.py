@@ -584,16 +584,18 @@ class PositionDetector:
                 v_pos, v_vel = PositionDetector._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
-            v_still = npabs(v_vel) < self.vel_thresh
-            vs_start = where(diff(v_still.astype(int)) == 1)[0] + int_start
-            vs_stop = where(diff(v_still.astype(int)) == -1)[0] + int_start
+            # v_still = npabs(v_vel) < self.vel_thresh
+            # vs_start = where(diff(v_still.astype(int)) == 1)[0] + int_start
+            # vs_stop = where(diff(v_still.astype(int)) == -1)[0] + int_start
+            pos_zc = where(diff(sign(v_vel)) == 1)[0]
+            neg_zc = where(diff(sign(v_vel)) == -1)[0]
 
             try:
-                start = vs_stop[vs_stop < ppk][-1]
+                start = pos_zc[pos_zc < ppk][-1]
             except IndexError:
                 continue
             try:
-                end = vs_start[vs_start > ppk][0]
+                end = neg_zc[neg_zc > ppk][0]
             except IndexError:
                 continue
 
