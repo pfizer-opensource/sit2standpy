@@ -359,7 +359,7 @@ class SimilarityDetector:
             Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
             time for the STS transitions. Default is 0.5 m/s^2.
         start_pos : {'fixed', 'variable'}, optional
-            How the start of STS transitions is determed. Either a fixed location, or can be variable among several
+            How the start of STS transitions is determined. Either a fixed location, or can be variable among several
             possible locations, and the best location is chosen. Default is 'fixed'
         acc_peak_params : {None, dict}, optional
             Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
@@ -664,3 +664,63 @@ class PositionDetector:
         stops = where(diff(acc_still.astype(int)) == -1)[0]
 
         return acc_still, stops
+
+
+class PosiStillDetector:
+    def __str__(self):
+        return f'Position and Stillness Sit-to-Stand Detector'
+
+    def __repr__(self):
+        return f'PosiStillDetector({self.grav}, {self.thresholds}, {self.grav_ord}, {self.grav_cut}, ' \
+            f'{self.long_still}, {self.mov_window}'
+
+    def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=2.0,
+                 moving_window=0.3):
+        """
+        Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
+        vertical position of a lumbar accelerometer.
+
+        Parameters
+        ----------
+        gravity : float, optional
+            Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
+        thresholds : {None, dict}, optional
+            Either None, for the default, or a dictionary of thresholds to change. See
+            PosiStillDetector.default_thresholds for a dictionary of the thresholds and their default values. Default
+            is None, which uses the default values.
+        gravity_pass_ord : int, optional
+            Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
+            data. Default is 4.
+        gravity_pass_cut : float, optional
+            Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
+        long_still : float, optional
+            Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
+            integration limits when available. Default is 2.0s.
+        moving_window : float, optional
+            Length of the moving window for calculating the moving statistics for determining stillness.
+            Default is 0.3s.
+        """
+        # set the default thresholds
+        self.default_thresholds = {'stand position delta': 0.15,
+                                   'still velocity': 0.05,
+                                   'accel moving avg': 0.25,
+                                   'accel moving std': 0.5,
+                                   'jerk moving avg': 3,
+                                   'jerk moving std': 5}
+        # assign attributes
+        self.grav = gravity
+
+        self.thresh = {i: self.default_thresholds[i] for i in self.default_thresholds.keys()}
+        if thresholds is not None:
+            for key in thresholds.keys():
+                if key in self.thresh:
+                    self.thresh[key] = thresholds[key]
+
+        self.grav_ord = gravity_pass_ord
+        self.grav_cut = gravity_pass_cut
+
+        self.long_still = long_still
+        self.mov_window = moving_window
+
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+
