@@ -674,14 +674,19 @@ class PosiStillDetector:
         return f'PosiStillDetector({self.grav}, {self.thresholds}, {self.grav_ord}, {self.grav_cut}, ' \
             f'{self.long_still}, {self.mov_window}'
 
-    def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=2.0,
-                 moving_window=0.3):
+    def __init__(self, strict_stillness=True, gravity=9.81, thresholds=None, gravity_pass_ord=4,
+                 gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, lmax_kwargs=None, lmin_kwargs=None):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
         vertical position of a lumbar accelerometer.
 
         Parameters
         ----------
+        strict_stillness : bool, optional
+            Whether or not to require stillness for a sit-to-stand transition, or to use vertical position data instead.
+            True requires that stillness precede a transition, and this is recommended for situations where transitions
+            are not expected to occur rapidly, or with much motion beforehand. Setting this to False allows the
+            vertical position to be used without requiring a still period before the transition. Default is True.
         gravity : float, optional
             Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
         thresholds : {None, dict}, optional
@@ -695,10 +700,16 @@ class PosiStillDetector:
             Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
         long_still : float, optional
             Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
-            integration limits when available. Default is 2.0s.
+            integration limits when available. Default is 0.5s.
         moving_window : float, optional
             Length of the moving window for calculating the moving statistics for determining stillness.
             Default is 0.3s.
+        lmax_kwargs : {None, dict}, optional
+            Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
+            for no specified arguments. See scipy.signal.find_peaks for possible arguments.
+        lmin_kwargs : {None, dict}, optional
+            Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
+            for no specified arguments. See scipy.signal.find_peaks for the possible arguments.
         """
         # set the default thresholds
         self.default_thresholds = {'stand position delta': 0.15,
@@ -708,6 +719,7 @@ class PosiStillDetector:
                                    'jerk moving avg': 3,
                                    'jerk moving std': 5}
         # assign attributes
+        self.strict = strict_stillness
         self.grav = gravity
 
         self.thresh = {i: self.default_thresholds[i] for i in self.default_thresholds.keys()}
@@ -722,5 +734,166 @@ class PosiStillDetector:
         self.long_still = long_still
         self.mov_window = moving_window
 
-    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        if lmin_kwargs is None:
+            self.lmin_kw = {}
+        else:
+            self.lmin_kw = lmin_kwargs
+        if lmax_kwargs is None:
+            self.lmax_kw = {}
+        else:
+            self.lmin_kw = lmax_kwargs
 
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        # find where the accelerometer is still
+        acc_still, still_stops = PosiStillDetector._stillness(mag_acc, dt, self.mov_window, self.grav,
+                                                              self.thresh['accel moving avg'],
+                                                              self.thresh['accel moving std'],
+                                                              self.thresh['jerk moving avg'],
+                                                              self.thresh['jerk moving std'])
+        # find starts of stillness, and add beginning and end of trials if necessary
+        still_starts = where(diff(acc_still.astype(int)) == 1)[0]
+        if acc_still[0]:
+            still_starts = append(0, still_starts)
+        if acc_still[-1]:
+            still_stops = append(still_stops, 0)
+
+        still_dt = still_stops - still_starts  # durations of stillness, in samples
+        # starts and stops of long still periods
+        lstill_starts = still_starts[still_dt > (self.long_still / dt)]
+        lstill_stops = still_stops[still_dt > (self.long_still / dt)]
+
+        # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
+        # local minima, as this avoids some possible artefacts in the signal
+        acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
+        acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
+
+        # compute an estimate of the direction of gravity, assumed to be vertical direction
+        gfc = butter(self.grav_ord, 2 * self.grav_cut * dt, btype='low')
+        vertical = filtfilt(gfc[0], gfc[1], raw_acc, axis=0, padlen=None)
+        vertical /= norm(vertical, axis=1, keepdims=True)  # make into a unit vector
+
+        # get an estimate of the vertical acceleration
+        v_acc = npsum(vertical * raw_acc, axis=1)
+
+        # iterate over the peaks
+        sts = []
+        if self.strict:
+            for ppk in power_peaks:
+                # look for the preceeding end of any stillness
+                try:
+                    end_still = still_stops[still_stops < ppk][-1]
+                    if (time(ppk) - time[end_still]) > 2:  # check to make sure its not too long of a time
+                        raise IndexError
+                except IndexError:
+                    continue
+                # look for the following local min -> local max pattern
+                try:
+                    n_lmin = acc_lmin[acc_lmin > ppk][0]
+                    n_lmax = acc_lmax[acc_lmax > n_lmin][0]
+                    if (time[n_lmax] - time[ppk]) > 2:  # check to make sure not too long
+                        raise IndexError
+                except IndexError:
+                    continue
+                # look for a still period for integration
+                try:
+                    start_still = still_starts[still_starts > ppk][0]
+                    if (time[start_still] - time[ppk]) > 30:  # can integrate for a little while if necessary
+                        no_start_still = True
+                        raise IndexError
+                    else:
+                        no_start_still = False
+                except IndexError:
+                    no_start_still = True
+
+                # integrate the signal between the start and stop points
+                PosiStillDetector._get_position()
+
+
+
+        """
+        # iterate over the power peaks
+        sts = []
+        for ppk in power_peaks:
+            # find the next trough -> peak combo in the acceleration signal
+            try:
+                next_tr = acc_trs[acc_trs > ppk][0]
+            except IndexError:
+                continue
+            # find the peak following the trough
+            try:
+                next_pk = acc_pks[acc_pks > next_tr][0]
+                if mag_acc[next_pk] - mag_acc[next_tr] < self.tp_diff:
+                    next_pk = acc_pks[acc_pks > next_tr][1]
+            except IndexError:
+                continue
+            # make sure that the time between power peak and next signal peak isn't unreasonable
+            if time[next_pk] - time[ppk] > 2:
+                continue
+            # find the end of the previous period of stillness
+            try:
+                prev_still = still_stops[still_stops < ppk][-1]  # find the end of the previous still period
+                # check that it is not too far in the past
+                if (time[ppk] - time[prev_still]) > 3 * (time[next_pk] - time[ppk]):
+                    continue
+                elif len(sts) > 0:  # check that it doesn't overlap the previous STS transition
+                    if (time[prev_still] - sts[-1][1]) < 0.5:  # 0.75s "cooldown" between STS transitions
+                        continue
+            except IndexError:
+                continue
+
+            sts.append((time[prev_still], time[next_pk]))
+
+        return sts, dict(plot=acc_still)
+        """
+
+    @staticmethod
+    def _stillness(mag_acc_f, dt, window, gravity, acc_mov_avg_thresh, acc_mov_std_thresh, jerk_mov_avg_thresh,
+                   jerk_mov_std_thresh):
+        """
+        Stillness determination of acceleration magnitude data
+
+        Parameters
+        ----------
+        mag_acc_f : numpy.ndarray
+            (N, 3) array of filtered acceleration data.
+        dt : float
+            Sampling time difference, in seconds.
+        window : float
+            Moving statistics window length, in seconds.
+        gravity : float
+            Gravitational acceleration, as measured by the sensor during static sitting or standing.
+        acc_mov_avg_thresh : float
+            Acceleration moving average threshold, used for determining stillness.
+        acc_mov_std_thresh : float
+            Acceleration moving standard deviation threshold, used for determining stillness.
+        jerk_mov_avg_thresh : float
+            Jerk moving average threshold, used for determining stillness.
+        jerk_mov_std_thresh : float
+            Jerk moving standard deviation threshold, used for determining stillness.
+
+        Returns
+        -------
+        acc_still : numpy.ndarray
+            (N, ) boolean array indicating stillness
+        stops : numpy.ndarray
+            (P, ) array of where stillness ends, where by necessity has to follow: P < N / 2
+        """
+        # calculate the sample window from the time window
+        n_window = int(around(window / dt))
+        # compute the acceleration moving standard deviation
+        am_avg, am_std, _ = u_.mov_stats(mag_acc_f, n_window)
+        # compute the jerk
+        jerk = gradient(mag_acc_f, dt, edge_order=2)
+        # compute the jerk moving average and standard deviation
+        jm_avg, jm_std, _ = u_.mov_stats(jerk, n_window)
+
+        # create masks from the moving statistics of acceleration and jerk
+        am_avg_mask = npabs(am_avg - gravity) < acc_mov_avg_thresh
+        am_std_mask = am_std < acc_mov_std_thresh
+        jm_avg_mask = npabs(jm_avg) < jerk_mov_avg_thresh
+        jm_std_mask = jm_std < jerk_mov_std_thresh
+
+        acc_still = am_avg_mask & am_std_mask & jm_avg_mask & jm_std_mask
+        stops = where(diff(acc_still.astype(int)) == -1)[0]
+
+        return acc_still, stops
