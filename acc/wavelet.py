@@ -712,7 +712,7 @@ class PosiStillDetector:
             for no specified arguments. See scipy.signal.find_peaks for the possible arguments.
         """
         # set the default thresholds
-        self.default_thresholds = {'stand position delta': 0.15,
+        self.default_thresholds = {'stand displacement': 0.15,
                                    'still velocity': 0.05,
                                    'accel moving avg': 0.25,
                                    'accel moving std': 0.5,
@@ -779,9 +779,10 @@ class PosiStillDetector:
         sts = []
         if self.strict:
             for ppk in power_peaks:
-                # look for the preceeding end of any stillness
+                # look for the preceding end of any stillness
                 try:
                     end_still = still_stops[still_stops < ppk][-1]
+                    # TODO make this a parameter?
                     if (time(ppk) - time[end_still]) > 2:  # check to make sure its not too long of a time
                         raise IndexError
                 except IndexError:
@@ -790,6 +791,7 @@ class PosiStillDetector:
                 try:
                     n_lmin = acc_lmin[acc_lmin > ppk][0]
                     n_lmax = acc_lmax[acc_lmax > n_lmin][0]
+                    # TODO make this a parameter
                     if (time[n_lmax] - time[ppk]) > 2:  # check to make sure not too long
                         raise IndexError
                 except IndexError:
@@ -797,54 +799,100 @@ class PosiStillDetector:
                 # look for a still period for integration
                 try:
                     start_still = still_starts[still_starts > ppk][0]
-                    if (time[start_still] - time[ppk]) > 30:  # can integrate for a little while if necessary
-                        no_start_still = True
-                        raise IndexError
+                    if (time[start_still] - time[ppk]) < 30:  # can integrate for a little while if necessary
+                        no_still = False
                     else:
-                        no_start_still = False
+                        raise IndexError
                 except IndexError:
-                    no_start_still = True
+                    start_still = n_lmax
+                    no_still = True
 
                 # integrate the signal between the start and stop points
-                PosiStillDetector._get_position()
+                v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still], dt, no_still)
 
+                if (v_pos[n_lmax - end_still] - v_pos[0]) > self.thresh['stand displacement']:
+                    sts.append((time[end_still], time[n_lmax]))
+        else:
+            for ppk in power_peaks:
+                # look for the preceding end of long stillness
+                try:
+                    end_still = lstill_stops[lstill_stops < ppk][-1]
+                    if (time[ppk] - time[end_still]) > 30:  # don't want to integrate for too long
+                        raise IndexError
+                except IndexError:
+                    end_still = int(ppk - (2.5 / dt))  # will try to use set time beforehand
 
+                # look for the next start of long stillness, and if not look for any short stillness ends
+                try:
+                    start_still = lstill_starts[lstill_starts > ppk][0]
+                    if (time[start_still] - time[ppk]) < 30:
+                        no_still = False
+                    else:
+                        raise IndexError
+                except IndexError:
+                    start_still = int(ppk + (5 / dt))  # will try to use a set time afterwards
+                    no_still = True
 
-        """
-        # iterate over the power peaks
-        sts = []
-        for ppk in power_peaks:
-            # find the next trough -> peak combo in the acceleration signal
-            try:
-                next_tr = acc_trs[acc_trs > ppk][0]
-            except IndexError:
-                continue
-            # find the peak following the trough
-            try:
-                next_pk = acc_pks[acc_pks > next_tr][0]
-                if mag_acc[next_pk] - mag_acc[next_tr] < self.tp_diff:
-                    next_pk = acc_pks[acc_pks > next_tr][1]
-            except IndexError:
-                continue
-            # make sure that the time between power peak and next signal peak isn't unreasonable
-            if time[next_pk] - time[ppk] > 2:
-                continue
-            # find the end of the previous period of stillness
-            try:
-                prev_still = still_stops[still_stops < ppk][-1]  # find the end of the previous still period
-                # check that it is not too far in the past
-                if (time[ppk] - time[prev_still]) > 3 * (time[next_pk] - time[ppk]):
+                # integrate
+                v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still], dt, no_still)
+
+                # find the zero-crossings
+                pos_zc = where(diff(sign(v_vel)) == 1)[0]
+                neg_zc = where(diff(sign(v_vel)) == -1)[0]
+
+                # find the previous positive zero crossing
+                try:
+                    p_pzc = pos_zc[pos_zc < ppk][-1]
+                    if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
+                        raise IndexError
+                except IndexError:
                     continue
-                elif len(sts) > 0:  # check that it doesn't overlap the previous STS transition
-                    if (time[prev_still] - sts[-1][1]) < 0.5:  # 0.75s "cooldown" between STS transitions
-                        continue
-            except IndexError:
-                continue
+                # find the next negative zero crossing
+                try:
+                    n_nzc = neg_zc[neg_zc > ppk][0]
+                    if (time[n_nzc] - time[ppk]) > 2:  # TODO make this a parameter?
+                        raise IndexError
+                except IndexError:
+                    continue
 
-            sts.append((time[prev_still], time[next_pk]))
+                if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
+                    sts.append((time[p_pzc], time[n_nzc]))
 
-        return sts, dict(plot=acc_still)
+        return sts, {}
+
+    @staticmethod
+    def _get_position(acc, dt, no_still_end):
         """
+        Double integrate acceleration along 1 axis (ie 1D) to get velocity and position
+
+        Parameters
+        ----------
+        acc : numpy.ndarray
+            (N, ) array of acceleration values to integrate
+        no_still_end : bool
+            Whether or not the acceleration ends with a still period. Determines how drift is mitigated.
+
+        Returns
+        -------
+        vel : numpy.ndarray
+            (N, ) array of velocities
+        pos : numpy.ndarray
+            (N, ) array of positions
+        """
+        x = arange(acc.size)
+
+        # integrate and drift mitigate
+        if no_still_end:
+            fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
+            vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
+        else:
+            vel_dr = cumtrapz(acc, dx=dt, initial=0)
+            vel = vel_dr - (((vel_dr[-1] - vel_dr[0]) / (x[-1] - x[0])) * x)  # no intercept
+
+        # integrate the velocity to get position
+        pos = cumtrapz(vel, dx=dt, initial=0)
+
+        return vel, pos
 
     @staticmethod
     def _stillness(mag_acc_f, dt, window, gravity, acc_mov_avg_thresh, acc_mov_std_thresh, jerk_mov_avg_thresh,
