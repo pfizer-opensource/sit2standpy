@@ -755,7 +755,7 @@ class PosiStillDetector:
         if acc_still[0]:
             still_starts = append(0, still_starts)
         if acc_still[-1]:
-            still_stops = append(still_stops, 0)
+            still_stops = append(still_stops, len(acc_still) - 1)
 
         still_dt = still_stops - still_starts  # durations of stillness, in samples
         # starts and stops of long still periods
@@ -803,13 +803,15 @@ class PosiStillDetector:
                 # look for a still period for integration
                 try:
                     start_still = still_starts[still_starts > ppk][0]
-                    if (time[start_still] - time[ppk]) < 30:  # can integrate for a little while if necessary
+                    if start_still < n_lmax:
+                        raise IndexError
+                    elif (time[start_still] - time[ppk]) < 30:  # can integrate for a little while if necessary
                         no_still = False
                     else:
                         raise IndexError
                 except IndexError:
                     start_still = n_lmax
-                    no_still = True
+                    no_still = False
 
                 # integrate the signal between the start and stop points
                 if end_still < prev_int_start or start_still > prev_int_stop:
@@ -817,7 +819,21 @@ class PosiStillDetector:
                                                                    no_still)
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
-                if (v_pos[n_lmax - end_still - 1] - v_pos[0]) > self.thresh['stand displacement']:
+                    # find the zero-crossings
+                    pos_zc = where(diff(sign(v_vel)) > 0)[0]
+                    neg_zc = where(diff(sign(v_vel)) < 0)[0]
+
+                # previous and next zc
+                try:
+                    p_pzc = pos_zc[pos_zc + end_still < ppk][-1]
+                except IndexError:
+                    continue
+                try:
+                    n_nzc = neg_zc[neg_zc + end_still > ppk][0]
+                except IndexError:
+                    continue
+
+                if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
                         if time[end_still] > sts[-1][1]:  # prevent overlap TODO add cooldown
                             sts.append((time[end_still], time[n_lmax]))
