@@ -5,11 +5,10 @@ Lukas Adamowicz
 June 2019
 """
 from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose, \
-    append, sign, zeros
+    append, sign, array
 from numpy.linalg import norm
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 from scipy.integrate import cumtrapz
-from scipy.stats import linregress
 import pywt
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
@@ -232,7 +231,9 @@ class StillnessDetector:
 
             sts.append((time[prev_still], time[next_pk]))
 
-        return sts, dict(plot=acc_still)
+        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
+
+        return sts, dict(lines=[l1])
 
     @staticmethod
     def _stillness(mag_acc_f, dt, window, gravity, acc_mov_avg_thresh, acc_mov_std_thresh, jerk_mov_avg_thresh,
@@ -675,7 +676,8 @@ class PosiStillDetector:
             f'{self.long_still}, {self.mov_window}'
 
     def __init__(self, strict_stillness=True, gravity=9.81, thresholds=None, gravity_pass_ord=4,
-                 gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, lmax_kwargs=None, lmin_kwargs=None):
+                 gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, duration_factor=3, lmax_kwargs=None,
+                 lmin_kwargs=None):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
         vertical position of a lumbar accelerometer.
@@ -704,6 +706,10 @@ class PosiStillDetector:
         moving_window : float, optional
             Length of the moving window for calculating the moving statistics for determining stillness.
             Default is 0.3s.
+        duration_factor : float, optional
+            The factor for the maximum difference between the duration before and after the generalized location of
+            the sit to stand. Lower factors result in more equal time before and after the detection. Default
+            is 3.
         lmax_kwargs : {None, dict}, optional
             Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
             for no specified arguments. See scipy.signal.find_peaks for possible arguments.
@@ -733,6 +739,8 @@ class PosiStillDetector:
 
         self.long_still = long_still
         self.mov_window = moving_window
+
+        self.dur_factor = duration_factor
 
         if lmin_kwargs is None:
             self.lmin_kw = {}
@@ -823,6 +831,10 @@ class PosiStillDetector:
                     pos_zc = where(diff(sign(v_vel)) > 0)[0]
                     neg_zc = where(diff(sign(v_vel)) < 0)[0]
 
+                    if neg_zc.size == 0:
+                        if v_vel[-1] < 1e-2:
+                            neg_zc = array([v_pos.size - 1])
+
                 # previous and next zc
                 try:
                     p_pzc = pos_zc[pos_zc + end_still < ppk][-1]
@@ -833,9 +845,11 @@ class PosiStillDetector:
                 except IndexError:
                     continue
 
+                if (time[ppk] - time[end_still]) > self.dur_factor * (time[n_lmax] - time[ppk]):
+                    continue
                 if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
-                        if time[end_still] > sts[-1][1]:  # prevent overlap TODO add cooldown
+                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap TODO add cooldown
                             sts.append((time[end_still], time[n_lmax]))
                     else:
                         sts.append((time[end_still], time[n_lmax]))
@@ -890,8 +904,12 @@ class PosiStillDetector:
                 except IndexError:
                     continue
 
+                if (time[ppk] - time[p_pzc]) > self.dur_factor * (time[n_nzc] - time[ppk]):
+                    continue
                 if (v_pos[n_nzc - end_still] - v_pos[p_pzc - end_still]) > self.thresh['stand displacement']:
-                    sts.append((time[p_pzc], time[n_nzc]))
+                    if len(sts) > 0:
+                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap TODO make cooldown a parameter
+                            sts.append((time[p_pzc], time[n_nzc]))
 
                 # save so don't have to integrate again when not necessary
                 prev_int_start = end_still
