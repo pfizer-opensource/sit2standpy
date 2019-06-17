@@ -777,13 +777,17 @@ class PosiStillDetector:
 
         # iterate over the peaks
         sts = []
+        pos_lines = []
+
+        prev_int_start = -1
+        prev_int_stop = -1
         if self.strict:
             for ppk in power_peaks:
                 # look for the preceding end of any stillness
                 try:
                     end_still = still_stops[still_stops < ppk][-1]
                     # TODO make this a parameter?
-                    if (time(ppk) - time[end_still]) > 2:  # check to make sure its not too long of a time
+                    if (time[ppk] - time[end_still]) > 2:  # check to make sure its not too long of a time
                         raise IndexError
                 except IndexError:
                     continue
@@ -808,10 +812,22 @@ class PosiStillDetector:
                     no_still = True
 
                 # integrate the signal between the start and stop points
-                v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still], dt, no_still)
+                if end_still < prev_int_start or start_still > prev_int_stop:
+                    v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
+                                                                   no_still)
+                    pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
-                if (v_pos[n_lmax - end_still] - v_pos[0]) > self.thresh['stand displacement']:
-                    sts.append((time[end_still], time[n_lmax]))
+                if (v_pos[n_lmax - end_still - 1] - v_pos[0]) > self.thresh['stand displacement']:
+                    if len(sts) > 0:
+                        if time[end_still] > sts[-1][1]:  # prevent overlap TODO add cooldown
+                            sts.append((time[end_still], time[n_lmax]))
+                    else:
+                        sts.append((time[end_still], time[n_lmax]))
+
+                # save so don't have to integrate again when not necessary
+                prev_int_start = end_still
+                prev_int_stop = start_still
+
         else:
             for ppk in power_peaks:
                 # look for the preceding end of long stillness
@@ -834,11 +850,14 @@ class PosiStillDetector:
                     no_still = True
 
                 # integrate
-                v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still], dt, no_still)
+                if end_still < prev_int_start or start_still > prev_int_stop:
+                    v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
+                                                                   no_still)
+                    pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
-                # find the zero-crossings
-                pos_zc = where(diff(sign(v_vel)) == 1)[0]
-                neg_zc = where(diff(sign(v_vel)) == -1)[0]
+                    # find the zero-crossings
+                    pos_zc = where(diff(sign(v_vel)) > 0)[0] + end_still
+                    neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
 
                 # find the previous positive zero crossing
                 try:
@@ -855,10 +874,17 @@ class PosiStillDetector:
                 except IndexError:
                     continue
 
-                if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
+                if (v_pos[n_nzc - end_still] - v_pos[p_pzc - end_still]) > self.thresh['stand displacement']:
                     sts.append((time[p_pzc], time[n_nzc]))
 
-        return sts, {}
+                # save so don't have to integrate again when not necessary
+                prev_int_start = end_still
+                prev_int_stop = start_still
+
+        # some stuff for plotting
+        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
+
+        return sts, {'pos lines': pos_lines, 'lines': [l1]}
 
     @staticmethod
     def _get_position(acc, dt, no_still_end):
@@ -883,8 +909,9 @@ class PosiStillDetector:
 
         # integrate and drift mitigate
         if no_still_end:
-            fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
-            vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
+            # fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
+            # vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
+            vel = detrend(cumtrapz(acc, dx=dt, initial=0))
         else:
             vel_dr = cumtrapz(acc, dx=dt, initial=0)
             vel = vel_dr - (((vel_dr[-1] - vel_dr[0]) / (x[-1] - x[0])) * x)  # no intercept
