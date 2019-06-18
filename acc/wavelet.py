@@ -893,7 +893,7 @@ class PosiStillDetector:
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
                     p_still = still_stops[still_stops < ppk][-1]
-                    if npabs(p_still - p_pzc) < (0.25 / dt):
+                    if (-0.25 / dt) < (p_still - p_pzc) < (0.5 / dt):
                         p_pzc = p_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
