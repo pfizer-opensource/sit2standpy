@@ -892,8 +892,9 @@ class PosiStillDetector:
                 # find the previous positive zero crossing
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
-                    if npabs(end_still - p_pzc) < (0.25 / dt):
-                        p_pzc = end_still
+                    p_still = still_stops[still_stops < ppk][-1]
+                    if npabs(p_still - p_pzc) < (0.25 / dt):
+                        p_pzc = p_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
                 except IndexError:
