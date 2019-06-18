@@ -13,6 +13,8 @@ import pywt
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
+from os import listdir
+
 from pysit2stand import utility as u_
 
 plt.style.use(['ggplot', 'presentation'])
@@ -883,11 +885,14 @@ class PosiStillDetector:
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
                                                                    no_still)
+                    if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
+                        continue
+
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                     # find the zero-crossings
                     pos_zc = where(diff(sign(v_vel)) > 0)[0] + end_still
-                    if v_vel[0] < 1e-2:
+                    if v_vel[0] < 5e-2:
                         pos_zc = append(end_still, pos_zc)
                     # neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
 
@@ -895,7 +900,7 @@ class PosiStillDetector:
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
                     p_still = still_stops[still_stops < ppk][-1]
-                    if (-0.25 / dt) < (p_still - p_pzc) < (0.5 / dt):
+                    if (-0.3 / dt) < (p_still - p_pzc) < (0.5 / dt):
                         p_pzc = p_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
@@ -1012,5 +1017,7 @@ class PosiStillDetector:
 
         acc_still = am_avg_mask & am_std_mask & jm_avg_mask & jm_std_mask
         stops = where(diff(acc_still.astype(int)) == -1)[0]
+
+        # TODO Could consider adding all the masks together and filtering, then taking values above a threshold
 
         return acc_still, stops
