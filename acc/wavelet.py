@@ -892,24 +892,29 @@ class PosiStillDetector:
                 # find the previous positive zero crossing
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
+                    if npabs(end_still - p_pzc) < (0.25 / dt):
+                        p_pzc = end_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
                 except IndexError:
                     continue
                 # find the next negative zero crossing
                 try:
-                    n_nzc = neg_zc[neg_zc > ppk][0]
-                    if (time[n_nzc] - time[ppk]) > 2:  # TODO make this a parameter?
+                    n_lmin = acc_lmin[acc_lmin > ppk][0]
+                    n_lmax = acc_lmax[acc_lmax > n_lmin][0]
+                    if (time[n_lmax] - time[ppk]) > 2:  # TODO make this a parameter?
                         raise IndexError
                 except IndexError:
                     continue
 
-                if (time[ppk] - time[p_pzc]) > self.dur_factor * (time[n_nzc] - time[ppk]):
+                if (time[ppk] - time[p_pzc]) > self.dur_factor * (time[n_lmax] - time[ppk]):
                     continue
-                if (v_pos[n_nzc - end_still] - v_pos[p_pzc - end_still]) > self.thresh['stand displacement']:
+                if (v_pos[n_lmax - end_still] - v_pos[p_pzc - end_still]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
-                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap TODO make cooldown a parameter
-                            sts.append((time[p_pzc], time[n_nzc]))
+                        if (time[p_pzc] - sts[-1][1]) > 0.5:  # prevent overlap TODO make cooldown a parameter
+                            sts.append((time[p_pzc], time[n_lmax]))
+                    else:
+                        sts.append((time[p_pzc], time[n_lmax]))
 
                 # save so don't have to integrate again when not necessary
                 prev_int_start = end_still
