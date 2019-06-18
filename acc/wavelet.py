@@ -892,8 +892,7 @@ class PosiStillDetector:
 
                     # find the zero-crossings
                     pos_zc = where(diff(sign(v_vel)) > 0)[0] + end_still
-                    if v_vel[0] < 5e-2:
-                        pos_zc = append(end_still, pos_zc)
+                    pos_zc = append(end_still, pos_zc)
                     # neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
 
                 # find the previous positive zero crossing
