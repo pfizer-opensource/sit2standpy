@@ -816,17 +816,17 @@ class PosiStillDetector:
                     if start_still < n_lmax:
                         raise IndexError
                     elif (time[start_still] - time[ppk]) < 30:  # can integrate for a little while if necessary
-                        no_still = False
+                        still_at_end = True
                     else:
                         raise IndexError
                 except IndexError:
                     start_still = n_lmax
-                    no_still = False
+                    still_at_end = True
 
                 # integrate the signal between the start and stop points
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
-                                                                   no_still)
+                                                                   still_at_end)
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                     # find the zero-crossings
@@ -849,9 +849,11 @@ class PosiStillDetector:
 
                 if (time[ppk] - time[end_still]) > self.dur_factor * (time[n_lmax] - time[ppk]):
                     continue
+                if npabs(time[p_pzc + end_still] - time[end_still]) > 0.35:  # TODO make parameter
+                    continue
                 if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
-                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap TODO add cooldown
+                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap
                             sts.append((time[end_still], time[n_lmax]))
                     else:
                         sts.append((time[end_still], time[n_lmax]))
@@ -874,17 +876,17 @@ class PosiStillDetector:
                 try:
                     start_still = lstill_starts[lstill_starts > ppk][0]
                     if (time[start_still] - time[ppk]) < 30:
-                        no_still = False
+                        still_at_end = True
                     else:
                         raise IndexError
                 except IndexError:
                     start_still = int(ppk + (5 / dt))  # will try to use a set time afterwards
-                    no_still = True
+                    still_at_end = False
 
                 # integrate
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
-                                                                   no_still)
+                                                                   still_at_end)
                     if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
                         continue
 
@@ -933,7 +935,7 @@ class PosiStillDetector:
         return sts, {'pos lines': pos_lines, 'lines': [l1]}
 
     @staticmethod
-    def _get_position(acc, dt, no_still_end):
+    def _get_position(acc, dt, still_at_end):
         """
         Double integrate acceleration along 1 axis (ie 1D) to get velocity and position
 
@@ -954,7 +956,7 @@ class PosiStillDetector:
         x = arange(acc.size)
 
         # integrate and drift mitigate
-        if no_still_end:
+        if not still_at_end:
             # fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
             # vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
             vel = detrend(cumtrapz(acc, dx=dt, initial=0))
