@@ -827,6 +827,8 @@ class PosiStillDetector:
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
                                                                    still_at_end)
+                    if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
+                        continue
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                     # find the zero-crossings
