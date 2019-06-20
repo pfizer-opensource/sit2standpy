@@ -751,7 +751,7 @@ class PosiStillDetector:
         if lmax_kwargs is None:
             self.lmax_kw = {}
         else:
-            self.lmin_kw = lmax_kwargs
+            self.lmax_kw = lmax_kwargs
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         # find where the accelerometer is still
@@ -903,7 +903,7 @@ class PosiStillDetector:
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
                     p_still = still_stops[still_stops < ppk][-1]
-                    if (-0.5 / dt) < (p_still - p_pzc) < (0.5 / dt):
+                    if (-0.5 / dt) < (p_still - p_pzc) < (0.7 / dt):
                         p_pzc = p_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
@@ -922,7 +922,7 @@ class PosiStillDetector:
                     continue
                 if (v_pos[n_lmax - end_still] - v_pos[p_pzc - end_still]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
-                        if (time[p_pzc] - sts[-1][1]) > 0.5:  # prevent overlap TODO make cooldown a parameter
+                        if (time[p_pzc] - sts[-1][1]) > 0.4:  # prevent overlap TODO make cooldown a parameter
                             sts.append((time[p_pzc], time[n_lmax]))
                     else:
                         sts.append((time[p_pzc], time[n_lmax]))
