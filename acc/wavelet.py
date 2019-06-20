@@ -827,8 +827,6 @@ class PosiStillDetector:
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
                                                                    still_at_end)
-                    if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
-                        continue
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                     # find the zero-crossings
@@ -838,7 +836,9 @@ class PosiStillDetector:
                     if neg_zc.size == 0:
                         if v_vel[-1] < 1e-2:
                             neg_zc = array([v_pos.size - 1])
-
+                # ensure that the vertical velocity indicates that it is a peak as well
+                if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
+                    continue
                 # previous and next zc
                 try:
                     p_pzc = pos_zc[pos_zc + end_still < ppk][-1]
@@ -889,8 +889,6 @@ class PosiStillDetector:
                 if end_still < prev_int_start or start_still > prev_int_stop:
                     v_vel, v_pos = PosiStillDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
                                                                    still_at_end)
-                    if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
-                        continue
 
                     pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
@@ -898,12 +896,14 @@ class PosiStillDetector:
                     pos_zc = where(diff(sign(v_vel)) > 0)[0] + end_still
                     pos_zc = append(end_still, pos_zc)
                     # neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
-
+                # make sure that the velocity is high enough to indicate a peak
+                if v_vel[ppk - end_still] < 0.2:  # TODO make parameter
+                    continue
                 # find the previous positive zero crossing
                 try:
                     p_pzc = pos_zc[pos_zc < ppk][-1]
                     p_still = still_stops[still_stops < ppk][-1]
-                    if (-0.3 / dt) < (p_still - p_pzc) < (0.5 / dt):
+                    if (-0.5 / dt) < (p_still - p_pzc) < (0.5 / dt):
                         p_pzc = p_still
                     if (time[ppk] - time[p_pzc]) > 2:  # TODO make this a parameter?
                         raise IndexError
@@ -962,6 +962,8 @@ class PosiStillDetector:
             # fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
             # vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
             vel = detrend(cumtrapz(acc, dx=dt, initial=0))
+            if npabs(vel[0]) > 0.05:  # if too far away from zero
+                vel -= vel[0]  # reset the beginning back to 0, the integration always starts with stillness
         else:
             vel_dr = cumtrapz(acc, dx=dt, initial=0)
             vel = vel_dr - (((vel_dr[-1] - vel_dr[0]) / (x[-1] - x[0])) * x)  # no intercept
