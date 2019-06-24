@@ -20,7 +20,7 @@ plt.style.use(['ggplot', 'presentation'])
 
 
 class Wavelet:
-    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None):
+    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
         """
         Wavelet based detection of sit-to-stand transitions
 
@@ -35,7 +35,10 @@ class Wavelet:
             Default is [0, 0.5].
         peak_pwr_par : {None, dict}, optional
             Extra parameters (key-word arguments) to pass to scipy.signal.find_peaks when finding peaks in the
-            summed CWT coefficient power band data. Default is None, which will use the dictionary {'height': 95}.
+            summed CWT coefficient power band data. Default is None, which will use the default parameters, unless
+            std_height is True.
+        std_height : bool, optional
+            Use the standard deviation of the power for peak finding. Default is True.
         """
         self.cwave = continuous_wavelet  # TODO add checks this is a valid wavelet
 
@@ -47,9 +50,14 @@ class Wavelet:
             self.pk_pwr_stop = peak_pwr_band[1]
 
         if peak_pwr_par is None:
-            self.pk_pwr_par = {'height': 95}
+            self.pk_pwr_par = {}
         else:
             self.pk_pwr_par = peak_pwr_par
+
+        self.std_height = std_height
+        if self.std_height:
+            if 'height' in self.pk_pwr_par:
+                del self.pk_pwr_par['height']
 
     def fit(self, accel, time, detector, acc_filter):
         """
@@ -94,7 +102,10 @@ class Wavelet:
         self.power = npsum(self.coefs[f_mask, :], axis=0)
 
         # find the peaks in the power data
-        self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
+        if self.std_height:
+            self.pwr_pks, _ = find_peaks(self.power, height=std(self.power, ddof=1), **self.pk_pwr_par)
+        else:
+            self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
         sts, self.ext = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
