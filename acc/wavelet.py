@@ -784,7 +784,7 @@ class PosiStillDetector:
 
         # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
         # local minima, as this avoids some possible artefacts in the signal
-        acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
+        acc_lmax, _ = find_peaks(mag_acc_r, **self.lmax_kw)
         acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
 
         # compute an estimate of the direction of gravity, assumed to be vertical direction
