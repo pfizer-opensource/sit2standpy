@@ -946,7 +946,7 @@ class PosiStillDetector:
 
         # check to ensure no partial transitions
         vd = [sts[i].v_displacement for i in sts]
-        vd_high_diff = array(vd) > 0.75 * median(vd)
+        vd_high_diff = array(vd) < 0.75 * median(vd)
         for elem in array(list(sts.keys()))[vd_high_diff]:
             del sts[elem]
 
