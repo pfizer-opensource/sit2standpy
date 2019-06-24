@@ -938,12 +938,12 @@ class PosiStillDetector:
                     if len(sts) > 0:
                         if (time[p_pzc] - sts[list(sts.keys())[-1]].end_time) > 0.4:  # prevent overlap TODO make cooldown a parameter
                             # sts.append((time[p_pzc], time[n_lmax]))
-                            sts[f'{time[end_still]}'] = Transition(times=(time[end_still], time[n_lmax]),
-                                                                   v_displacement=v_pos[test_ind] - v_pos[p_pzc - end_still])
+                            sts[f'{time[p_pzc]}'] = Transition(times=(time[p_pzc], time[n_lmax]),
+                                                               v_displacement=v_pos[test_ind] - v_pos[p_pzc - end_still])
                     else:
                         # sts.append((time[p_pzc], time[n_lmax]))
-                        sts[f'{time[end_still]}'] = Transition(times=(time[end_still], time[n_lmax]),
-                                                               v_displacement=v_pos[test_ind] - v_pos[p_pzc - end_still])
+                        sts[f'{time[p_pzc]}'] = Transition(times=(time[p_pzc], time[n_lmax]),
+                                                           v_displacement=v_pos[test_ind] - v_pos[p_pzc - end_still])
 
                 # save so don't have to integrate again when not necessary
                 prev_int_start = end_still
