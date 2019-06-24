@@ -13,6 +13,12 @@ from pysit2stand import utility as u_
 
 
 class Transition:
+    def __str__(self):
+        return f'Postural Transition'
+
+    def __repr__(self):
+        return f'Postural Transition (Duration: {self.duration:.2f})'
+
     def __init__(self, times, v_displacement=None, max_v_velocity=None, min_v_velocity=None,
                  max_acceleration=None, min_acceleration=None):
         """
