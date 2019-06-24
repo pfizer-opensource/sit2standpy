@@ -5,7 +5,7 @@ Lukas Adamowicz
 June 2019
 """
 from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose, \
-    append, sign, array
+    append, sign, array, median, std
 from numpy.linalg import norm
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 from scipy.integrate import cumtrapz
@@ -13,9 +13,8 @@ import pywt
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
-from os import listdir
-
 from pysit2stand import utility as u_
+from pysit2stand.common import Transition
 
 plt.style.use(['ggplot', 'presentation'])
 
@@ -786,7 +785,7 @@ class PosiStillDetector:
         v_acc = npsum(vertical * raw_acc, axis=1)
 
         # iterate over the peaks
-        sts = []
+        sts = {}
         pos_lines = []
 
         prev_int_start = -1
@@ -855,10 +854,13 @@ class PosiStillDetector:
                     continue
                 if (v_pos[n_nzc] - v_pos[p_pzc]) > self.thresh['stand displacement']:
                     if len(sts) > 0:
-                        if (time[end_still] - sts[-1][1]) > 0.5:  # prevent overlap
-                            sts.append((time[end_still], time[n_lmax]))
+                        if (time[end_still] - sts[list(sts.keys())[-1]].end_time) > 0.5:  # prevent overlap
+                            # sts.append((time[end_still], time[n_lmax]))
+                            sts[f'{time[end_still]}'] = Transition(times=(time[end_still], time[n_lmax]),
+                                                                   v_displacement=v_pos[n_nzc] - v_pos[p_pzc])
                     else:
-                        sts.append((time[end_still], time[n_lmax]))
+                        sts[f'{time[end_still]}'] = Transition(times=(time[end_still], time[n_lmax]),
+                                                               v_displacement=v_pos[n_nzc] - v_pos[p_pzc])
 
                 # save so don't have to integrate again when not necessary
                 prev_int_start = end_still
@@ -931,6 +933,12 @@ class PosiStillDetector:
                 prev_int_start = end_still
                 prev_int_stop = start_still
 
+        # check to ensure no partial transitions
+        vd = [sts[i].v_displacement for i in sts]
+        vd_high_diff = npabs(array(vd) - median(vd)) > 2 * std(vd, ddof=1)
+        for elem in array(list(sts.keys()))[vd_high_diff]:
+            del sts[elem]
+
         # some stuff for plotting
         l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
 
@@ -945,7 +953,7 @@ class PosiStillDetector:
         ----------
         acc : numpy.ndarray
             (N, ) array of acceleration values to integrate
-        no_still_end : bool
+        still_at_end : bool
             Whether or not the acceleration ends with a still period. Determines how drift is mitigated.
 
         Returns

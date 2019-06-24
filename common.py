@@ -12,6 +12,27 @@ import pywt
 from pysit2stand import utility as u_
 
 
+class Transition:
+    def __init__(self, times=None, v_displacement=None, duration=None, max_v_velocity=None, min_v_velocity=None,
+                 max_acceleration=None, min_acceleration=None):
+        """
+        Object for storing information about a postural transition
+        """
+        self.times = times
+        if times is not None:
+            self.start_time = times[0]
+            self.end_time = times[1]
+        else:
+            self.start_time = None
+            self.end_time = None
+        self.v_displacement = v_displacement
+        self.duration = duration
+        self.max_v_velocity = max_v_velocity
+        self.min_v_velocity = min_v_velocity
+        self.max_acceleration = max_acceleration
+        self.min_acceleration = min_acceleration
+
+
 class AccFilter:
     def __init__(self, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
                  window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
