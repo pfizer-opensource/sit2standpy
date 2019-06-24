@@ -4,7 +4,7 @@ Common methods for both acceleration only and imu-based postural transition dete
 Lukas Adamowicz
 June 2019
 """
-from numpy import around
+from numpy import around, ndarray
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt
 import pywt
@@ -13,20 +13,20 @@ from pysit2stand import utility as u_
 
 
 class Transition:
-    def __init__(self, times=None, v_displacement=None, duration=None, max_v_velocity=None, min_v_velocity=None,
+    def __init__(self, times, v_displacement=None, max_v_velocity=None, min_v_velocity=None,
                  max_acceleration=None, min_acceleration=None):
         """
         Object for storing information about a postural transition
         """
         self.times = times
-        if times is not None:
+        if isinstance(times, (tuple, list, ndarray)):
             self.start_time = times[0]
             self.end_time = times[1]
+            self.duration = self.end_time - self.start_time
         else:
-            self.start_time = None
-            self.end_time = None
+            raise ValueError('times must be a tuple or a list-like.')
+
         self.v_displacement = v_displacement
-        self.duration = duration
         self.max_v_velocity = max_v_velocity
         self.min_v_velocity = min_v_velocity
         self.max_acceleration = max_acceleration
