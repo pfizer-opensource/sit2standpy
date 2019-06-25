@@ -954,7 +954,7 @@ class PosiStill:
         return acc_still, stops
 
 
-class DisplacementDetector:
+class Displacement:
     def __init__(self, strict_stillness=False, gravity=9.81, thresholds=None, gravity_pass_ord=4,
                  gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, duration_factor=3, lmax_kwargs=None,
                  lmin_kwargs=None):
@@ -999,7 +999,7 @@ class DisplacementDetector:
         """
         # set the default thresholds
         self.default_thresholds = {'stand displacement': 0.15,
-                                   'still velocity': 0.05,
+                                   'transition velocity': 0.2,
                                    'accel moving avg': 0.25,
                                    'accel moving std': 0.5,
                                    'jerk moving avg': 3,
@@ -1033,8 +1033,8 @@ class DisplacementDetector:
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         # find stillness
-        acc_still, still_starts, still_stops = DisplacementDetector._stillness(mag_acc, dt, self.mov_window, self.grav,
-                                                                               self.thresh)
+        acc_still, still_starts, still_stops = Displacement._stillness(mag_acc, dt, self.mov_window, self.grav,
+                                                                       self.thresh)
         # starts and stops of long still periods
         still_dt = (still_stops - still_starts) * dt  # durations of stillness, in seconds
         lstill_starts = still_starts[still_dt > self.long_still]
@@ -1091,8 +1091,41 @@ class DisplacementDetector:
 
             # integrate the signal between the start and stop points
             if end_still < prev_int_start or start_still > prev_int_stop:
-                v_vel, v_pos = DisplacementDetector._get_position(v_acc[end_still:start_still] - self.grav, dt,
-                                                                  still_at_end)
+                v_vel, v_pos = Displacement._get_position(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
+
+                # save the used integration indices
+                prev_int_start = end_still
+                prev_int_stop = start_still
+
+                # plotting stuff
+                pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C6', linewidth=1.5))
+
+                # find the zero crossings
+                pos_zc = append(end_still, where(diff(sign(v_vel)) > 0)[0] + end_still)
+                neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
+                if neg_zc.size == 0:
+                    if v_vel[-1] < 1e-2:
+                        neg_zc = array([v_pos.size - 1])
+
+            # ensure that the vertical velocity indicates that it is a peak as well
+            if v_vel[ppk - end_still] < self.thresh['transition velocity']:
+                continue
+            # find the previous and next zero crossings
+            # TODO take a look at the following parts
+            try:
+                p_pzc = pos_zc[pos_zc < ppk][-1]
+                if not self.strict:
+                    p_still = still_stops[still_stops < ppk][-1]
+                    if (-0.5 / dt) < (p_still - p_pzc) < (0.7 / dt):
+                        p_pzc = p_still
+                    if (time[ppk] - time[p_pzc]) > 2:
+                        raise IndexError
+            except IndexError:
+                continue
+            try:
+                n_nzc = neg_zc[neg_zc < ppk][0]
+            except IndexError:
+                continue
 
 
 
