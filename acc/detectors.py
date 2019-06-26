@@ -1383,7 +1383,7 @@ class Displacement:
             try:  # find the end of the transition
                 # n_lmin = acc_lmin[acc_lmin > ppk][0]
                 # n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                sts_end = neg_zc[neg_zc > ppk[0]]
+                sts_end = neg_zc[neg_zc > ppk][0]
                 if (time[sts_end] - time[ppk]).total_seconds() > 2:  # TODO parameter
                     raise IndexError
             except IndexError:
