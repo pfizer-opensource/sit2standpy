@@ -955,8 +955,8 @@ class PosiStill:
 
 
 class Stillness:
-    def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4,
-                 gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, duration_factor=3, lmax_kwargs=None,
+    def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
+                 moving_window=0.3, duration_factor=3, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
@@ -985,6 +985,9 @@ class Stillness:
             The factor for the maximum difference between the duration before and after the generalized location of
             the sit to stand. Lower factors result in more equal time before and after the detection. Default
             is 3.
+        displacement_factor : float, optional
+            Factor multiplied by the median of the vertical displacements to determine the threshold for checking if a
+            transition is a partial transition or a full transition. Default is 0.75
         lmax_kwargs : {None, dict}, optional
             Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
             for no specified arguments. See scipy.signal.find_peaks for possible arguments.
@@ -1015,6 +1018,7 @@ class Stillness:
         self.mov_window = moving_window
 
         self.dur_factor = duration_factor
+        self.disp_factor = displacement_factor
 
         if lmin_kwargs is None:
             self.lmin_kw = {}
@@ -1027,8 +1031,8 @@ class Stillness:
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         # find stillness
-        acc_still, still_starts, still_stops = Displacement._stillness(mag_acc, dt, self.mov_window, self.grav,
-                                                                       self.thresh)
+        acc_still, still_starts, still_stops = Stillness._stillness(mag_acc, dt, self.mov_window, self.grav,
+                                                                    self.thresh)
         # starts and stops of long still periods
         still_dt = (still_stops - still_starts) * dt  # durations of stillness, in seconds
         lstill_starts = still_starts[still_dt > self.long_still]
@@ -1055,9 +1059,85 @@ class Stillness:
         prev_int_stop = -1
 
         for ppk in power_peaks:
-            pass
+            try:  # look for any preceding end of any stillness
+                end_still = still_stops[still_stops < ppk][-1]
+                if (time[ppk] - time[end_still]) > 2:  # ensure not too far back
+                    # TODO parameter?
+                    raise IndexError
+            except IndexError:
+                continue
+            try:  # look for the following local min -> local max pattern
+                n_lmin = acc_lmin[acc_lmin > ppk][0]
+                n_lmax = acc_lmax[acc_lmax > n_lmin][0]
+                if (time[n_lmax] - time[ppk]) > 2: # ensure not too far ahead
+                    raise IndexError
+            except IndexError:
+                continue
+            try:  # look for a still period for integration
+                start_still = still_starts[still_starts > ppk][0]
+                if start_still < n_lmax:
+                    raise IndexError
+                elif (time[start_still] - time[ppk] < 30): # can integrate for a while
+                    still_at_end = True
+                else:
+                    raise IndexError
+            except IndexError:
+                start_still = n_lmax
+                still_at_end = True
 
+            # INTEGRATE the signal between the start and stop points
+            if end_still < prev_int_start or start_still > prev_int_start:
+                v_vel, v_pos = Stillness._get_position(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
+                # plotting the position
+                pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
+                # save the used integration limits
+                prev_int_start = end_still
+                prev_int_stop = start_still
+
+                # find the zero crossings
+                pos_zc = where(diff(sign(v_vel)) > 0)[0]
+                neg_zc = where(diff(sign(v_vel)) < 0)[0]
+
+                if neg_zc.size == 0:
+                    if v_vel[-1] < 1e-2:
+                        neg_zc = array([v_pos.size - 1])
+            # ensure that the vertical velocity indicates that it is a peak as well
+            if v_vel[ppk - end_still] < self.thresh['transition velocity']:
+                continue
+            try:  # previous and next zero crossings
+                p_pzc = pos_zc[pos_zc + end_still < ppk][-1]
+                n_nzc = neg_zc[neg_zc + end_still < ppk][0]
+            except IndexError:
+                continue
+
+            # quality checks
+            if (time[ppk] - time[end_still]) > self.dur_factor * (time[n_lmax] - time[ppk]):
+                continue
+            if npabs(time[p_pzc + end_still] - time[end_still]) > 0.35:  # TODO parameter?
+                continue
+            if (v_pos[n_nzc] - v_pos[p_pzc]) < self.thresh['stand displacement']:
+                continue
+            # STS creation
+            if len(sts) > 0:
+                if (time[end_still] - sts[list(sts.keys())[-1]].end_time) > 0.5:  # prevent overlap
+                    # old uses v_pos[n_nzc] - v_pos[p_pzc], though this does not match the duration of the sts
+                    sts[f'{time[end_still]}'] = Transition((time[end_still], time[n_lmax]),
+                                                           v_displacement=v_pos[n_lmax - end_still] - v_pos[0])
+            else:
+                sts[f'{time[end_still]}'] = Transition((time[end_still], time[n_lmax]),
+                                                       v_displacement=v_pos[n_lmax - end_still] - v_pos[0])
+
+        # check to ensure no partial transitions
+        vd = [sts[i].v_displacement for i in sts]
+        vd_high_diff = array(vd) < self.disp_factor * median(vd)
+        for elem in array(list(sts.keys()))[vd_high_diff]:
+            del sts[elem]
+
+        # plot the still periods
+        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
+
+        return sts, {'pos lines': pos_lines, 'lines': [l1]}
 
     @staticmethod
     def _get_position(acc, dt, still_at_end):
