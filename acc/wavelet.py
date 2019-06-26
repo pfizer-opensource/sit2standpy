@@ -4,17 +4,10 @@ Wavelet based methods of detecting postural transitions
 Lukas Adamowicz
 June 2019
 """
-from numpy import mean, diff, arange, logical_and, sum as npsum, abs as npabs, gradient, where, around, isclose, \
-    append, sign, array, median, std, timedelta64
-from numpy.linalg import norm
-from scipy.signal import find_peaks, butter, filtfilt, detrend
-from scipy.integrate import cumtrapz
+from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64
+from scipy.signal import find_peaks
 import pywt
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
-
-from pysit2stand import utility as u_
-from pysit2stand.common import Transition
 
 plt.style.use(['ggplot', 'presentation'])
 
