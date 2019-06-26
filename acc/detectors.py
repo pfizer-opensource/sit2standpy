@@ -16,7 +16,7 @@ from pysit2stand import utility as u_
 from pysit2stand.common import Transition
 
 
-class Stillness:
+class OldStillness:
     def __init__(self, gravity_value=9.81, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
                  jerk_mov_std_thresh=5, moving_window=0.3, tr_pk_diff=0.5, acc_peak_params=None,
                  acc_trough_params=None):
@@ -106,7 +106,7 @@ class Stillness:
             be plotted from the acceleration data
         """
         # find where the accelerometer is still
-        acc_still, still_stops = Stillness._stillness(mag_acc, dt, self.mov_window, self.grav_val, self.mov_avg_thresh,
+        acc_still, still_stops = OldStillness._stillness(mag_acc, dt, self.mov_window, self.grav_val, self.mov_avg_thresh,
                                                       self.mov_std_thresh, self.jerk_mov_avg_thresh,
                                                       self.jerk_mov_std_thresh)
 
@@ -954,21 +954,16 @@ class PosiStill:
         return acc_still, stops
 
 
-class Displacement:
-    def __init__(self, strict_stillness=False, gravity=9.81, thresholds=None, gravity_pass_ord=4,
+class Stillness:
+    def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4,
                  gravity_pass_cut=0.8, long_still=0.5, moving_window=0.3, duration_factor=3, lmax_kwargs=None,
                  lmin_kwargs=None):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
-        vertical position of a lumbar accelerometer.
+        vertical displacement of a lumbar accelerometer for ensuring a transition.
 
         Parameters
         ----------
-        strict_stillness : bool, optional
-            Whether or not to require stillness for a sit-to-stand transition, or to use vertical position data instead.
-            True requires that stillness precede a transition, and this is recommended for situations where transitions
-            are not expected to occur rapidly, or with much motion beforehand. Setting this to False allows the
-            vertical position to be used without requiring a still period before the transition. Default is True.
         gravity : float, optional
             Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
         thresholds : {None, dict}, optional
@@ -1005,7 +1000,6 @@ class Displacement:
                                    'jerk moving avg': 3,
                                    'jerk moving std': 5}
         # assign attributes
-        self.strict = strict_stillness
         self.grav = gravity
 
         self.thresh = {i: self.default_thresholds[i] for i in self.default_thresholds.keys()}
@@ -1061,71 +1055,7 @@ class Displacement:
         prev_int_stop = -1
 
         for ppk in power_peaks:
-            # look for the preceding end of stillness
-            try:
-                end_still = still_stops[still_stops < ppk][-1] if self.strict else lstill_stops[lstill_stops < ppk][-1]
-
-                # make sure physically possible transition duration, or that integration isn't too long
-                if (time[ppk] - time[end_still]).total_seconds() > (2 if self.strict else 15):
-                    raise IndexError
-            except IndexError:
-                continue
-            # look for the next local minima then maxima
-            try:
-                n_lmin = acc_lmin[acc_lmin > ppk][0]
-                n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                if (time[n_lmax] - time[ppk]).total_seconds() > 2:
-                    raise IndexError
-            except IndexError:
-                continue
-            # look for the following start of a long stillness, or if that fails, a short stillness
-            try:
-                start_still = lstill_starts[lstill_starts > ppk][0]
-                if (time[start_still] - time[ppk]).total_seconds() < 30:
-                    still_at_end = True
-                else:
-                    raise IndexError
-            except IndexError:
-                start_still = n_lmax if self.strict else int(ppk + (5 / dt))
-                still_at_end = self.strict  # strict designation matches what this should get set to
-
-            # integrate the signal between the start and stop points
-            if end_still < prev_int_start or start_still > prev_int_stop:
-                v_vel, v_pos = Displacement._get_position(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
-
-                # save the used integration indices
-                prev_int_start = end_still
-                prev_int_stop = start_still
-
-                # plotting stuff
-                pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C6', linewidth=1.5))
-
-                # find the zero crossings
-                pos_zc = append(end_still, where(diff(sign(v_vel)) > 0)[0] + end_still)
-                neg_zc = where(diff(sign(v_vel)) < 0)[0] + end_still
-                if neg_zc.size == 0:
-                    if v_vel[-1] < 1e-2:
-                        neg_zc = array([v_pos.size - 1])
-
-            # ensure that the vertical velocity indicates that it is a peak as well
-            if v_vel[ppk - end_still] < self.thresh['transition velocity']:
-                continue
-            # find the previous and next zero crossings
-            # TODO take a look at the following parts
-            try:
-                p_pzc = pos_zc[pos_zc < ppk][-1]
-                if not self.strict:
-                    p_still = still_stops[still_stops < ppk][-1]
-                    if (-0.5 / dt) < (p_still - p_pzc) < (0.7 / dt):
-                        p_pzc = p_still
-                    if (time[ppk] - time[p_pzc]) > 2:
-                        raise IndexError
-            except IndexError:
-                continue
-            try:
-                n_nzc = neg_zc[neg_zc < ppk][0]
-            except IndexError:
-                continue
+            pass
 
 
 
