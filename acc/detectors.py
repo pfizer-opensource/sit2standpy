@@ -1368,7 +1368,7 @@ class Displacement:
                 neg_zc = append(where(diff(sign(v_vel)) < 0)[0], v_vel.size - 1) + end_still
 
             # make sure the velocity is high enough to indicate a peak
-            if v_vel[ppk - end_still] < self.thresh['transition velocity']:
+            if v_vel[ppk - prev_int_start] < self.thresh['transition velocity']:
                 continue
             try:  # look for the previous positive zero crossing as the start of the transition
                 sts_start = pos_zc[pos_zc < ppk][-1]
@@ -1395,8 +1395,9 @@ class Displacement:
             if (time[ppk] - time[sts_start]).total_seconds() > self.dur_factor * (time[sts_end]
                                                                                   - time[ppk]).total_seconds():
                 continue
-            test_ind = sts_end - end_still if (sts_end - end_still) < v_pos.size else -1
-            if (v_pos[test_ind] - v_pos[sts_start - end_still]) < self.thresh['stand displacement']:
+            # test_ind = sts_end - end_still if (sts_end - end_still) < v_pos.size else -1
+            test_ind = sts_end - prev_int_start
+            if (v_pos[test_ind] - v_pos[sts_start - prev_int_start]) < self.thresh['stand displacement']:
                 continue
 
             # sts assignment
@@ -1404,11 +1405,11 @@ class Displacement:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap TODO param?
                     # sts.append((time[p_pzc], time[n_lmax]))
                     sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
-                                                           v_displacement=v_pos[test_ind] - v_pos[sts_start - end_still])
+                                                           v_displacement=v_pos[test_ind] - v_pos[sts_start - prev_int_start])
             else:
                 # sts.append((time[p_pzc], time[n_lmax]))
                 sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
-                                                       v_displacement=v_pos[test_ind] - v_pos[sts_start - end_still])
+                                                       v_displacement=v_pos[test_ind] - v_pos[sts_start - prev_int_start])
 
         # check to ensure no partial transitions
         vd = [sts[i].v_displacement for i in sts]
