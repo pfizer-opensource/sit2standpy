@@ -1376,20 +1376,22 @@ class Displacement:
                 # possibly use the end of stillness if it is close enough to the ZC
                 if -0.5 < (dt * (p_still - sts_start)) < 0.7:
                     sts_start = p_still
-                if (time[ppk] - time[sts_start]).total_seconds() > 2:  # TODO parameter?
-                    raise IndexError
+                # if (time[ppk] - time[sts_start]).total_seconds() > 2:  # TODO parameter?
+                #     raise IndexError
             except IndexError:
                 continue
             try:  # find the end of the transition
                 # n_lmin = acc_lmin[acc_lmin > ppk][0]
                 # n_lmax = acc_lmax[acc_lmax > n_lmin][0]
                 sts_end = neg_zc[neg_zc > ppk][0]
-                if (time[sts_end] - time[ppk]).total_seconds() > 2:  # TODO parameter
-                    raise IndexError
+                # if (time[sts_end] - time[ppk]).total_seconds() > 2:  # TODO parameter
+                #     raise IndexError
             except IndexError:
                 continue
 
             # quatity checks
+            if (time[sts_end] - time[sts_start]).total_seconds() > 4.5:
+                continue
             if (time[ppk] - time[sts_start]).total_seconds() > self.dur_factor * (time[sts_end]
                                                                                   - time[ppk]).total_seconds():
                 continue
