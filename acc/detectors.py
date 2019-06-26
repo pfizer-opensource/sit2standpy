@@ -1034,9 +1034,9 @@ class Stillness:
         acc_still, still_starts, still_stops = Stillness._stillness(mag_acc, dt, self.mov_window, self.grav,
                                                                     self.thresh)
         # starts and stops of long still periods
-        still_dt = (still_stops - still_starts) * dt  # durations of stillness, in seconds
-        lstill_starts = still_starts[still_dt > self.long_still]
-        lstill_stops = still_starts[still_dt > self.long_still]
+        # still_dt = (still_stops - still_starts) * dt  # durations of stillness, in seconds
+        # lstill_starts = still_starts[still_dt > self.long_still]
+        # lstill_stops = still_stops[still_dt > self.long_still]
 
         # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
         # local minima, as this avoids some possible artefacts in the signal
@@ -1045,7 +1045,7 @@ class Stillness:
 
         # compute an estimate of the direction of gravity, assumed to be the vertical direction
         gfc = butter(self.grav_ord, 2 * self.grav_cut * dt, btype='low')
-        vert = filtfilt(gfc[0], gfc[1], raw_acc, axis=1, padlen=None)
+        vert = filtfilt(gfc[0], gfc[1], raw_acc, axis=0, padlen=None)
         vert /= norm(vert, axis=1, keepdims=True)  # make into unit vectors
 
         # get an estimate of the vertical acceleration
@@ -1061,15 +1061,14 @@ class Stillness:
         for ppk in power_peaks:
             try:  # look for any preceding end of any stillness
                 end_still = still_stops[still_stops < ppk][-1]
-                if (time[ppk] - time[end_still]) > 2:  # ensure not too far back
-                    # TODO parameter?
+                if (time[ppk] - time[end_still]).total_seconds() > 2:  # ensure not too far back TODO parameter?
                     raise IndexError
             except IndexError:
                 continue
             try:  # look for the following local min -> local max pattern
                 n_lmin = acc_lmin[acc_lmin > ppk][0]
                 n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                if (time[n_lmax] - time[ppk]) > 2: # ensure not too far ahead
+                if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # ensure not too far ahead TODO parameter?
                     raise IndexError
             except IndexError:
                 continue
@@ -1077,7 +1076,7 @@ class Stillness:
                 start_still = still_starts[still_starts > ppk][0]
                 if start_still < n_lmax:
                     raise IndexError
-                elif (time[start_still] - time[ppk] < 30): # can integrate for a while
+                elif (time[start_still] - time[ppk]).total_seconds() < 30:  # can integrate for a while
                     still_at_end = True
                 else:
                     raise IndexError
@@ -1086,7 +1085,7 @@ class Stillness:
                 still_at_end = True
 
             # INTEGRATE the signal between the start and stop points
-            if end_still < prev_int_start or start_still > prev_int_start:
+            if end_still < prev_int_start or start_still > prev_int_stop:
                 v_vel, v_pos = Stillness._get_position(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
                 # plotting the position
                 pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
@@ -1112,15 +1111,16 @@ class Stillness:
                 continue
 
             # quality checks
-            if (time[ppk] - time[end_still]) > self.dur_factor * (time[n_lmax] - time[ppk]):
+            if (time[ppk] - time[end_still]).total_seconds() > self.dur_factor * (time[n_lmax]
+                                                                                  - time[ppk]).total_seconds():
                 continue
-            if npabs(time[p_pzc + end_still] - time[end_still]) > 0.35:  # TODO parameter?
+            if npabs((time[p_pzc + end_still] - time[end_still]).total_seconds()) > 0.35:  # TODO parameter?
                 continue
             if (v_pos[n_nzc] - v_pos[p_pzc]) < self.thresh['stand displacement']:
                 continue
             # STS creation
             if len(sts) > 0:
-                if (time[end_still] - sts[list(sts.keys())[-1]].end_time) > 0.5:  # prevent overlap
+                if (time[end_still] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.5:  # prevent overlap
                     # old uses v_pos[n_nzc] - v_pos[p_pzc], though this does not match the duration of the sts
                     sts[f'{time[end_still]}'] = Transition((time[end_still], time[n_lmax]),
                                                            v_displacement=v_pos[n_lmax - end_still] - v_pos[0])
@@ -1314,7 +1314,7 @@ class Displacement:
         # starts and stops of long still periods
         still_dt = (still_stops - still_starts) * dt  # durations of stillness, in seconds
         lstill_starts = still_starts[still_dt > self.long_still]
-        lstill_stops = still_starts[still_dt > self.long_still]
+        lstill_stops = still_stops[still_dt > self.long_still]
 
         # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
         # local minima, as this avoids some possible artefacts in the signal
@@ -1323,7 +1323,7 @@ class Displacement:
 
         # compute an estimate of the direction of gravity, assumed to be the vertical direction
         gfc = butter(self.grav_ord, 2 * self.grav_cut * dt, btype='low')
-        vert = filtfilt(gfc[0], gfc[1], raw_acc, axis=1, padlen=None)
+        vert = filtfilt(gfc[0], gfc[1], raw_acc, axis=0, padlen=None)
         vert /= norm(vert, axis=1, keepdims=True)  # make into unit vectors
 
         # get an estimate of the vertical acceleration
@@ -1339,13 +1339,13 @@ class Displacement:
         for ppk in power_peaks:
             try:  # look for the preceding end of long stillness
                 end_still = lstill_stops[lstill_stops < ppk][-1]
-                if (time[ppk] - time[end_still]) > 30:  # don't want to integrate for too long
+                if (time[ppk] - time[end_still]).total_seconds() > 30:  # don't want to integrate for too long
                     raise IndexError
             except IndexError:
                 end_still = int(ppk - (2.5 / dt))  # try to use a set time before the peak
             try:  # look for the next start of long stillness
                 start_still = lstill_starts[lstill_starts > ppk][0]
-                if (time[start_still] - time[ppk]) < 30:
+                if (time[start_still] - time[ppk]).total_seconds() < 30:
                     still_at_end = True
                 else:
                     raise IndexError
@@ -1375,20 +1375,20 @@ class Displacement:
                 # possibly use the end of stillness if it is close enough to the ZC
                 if -0.5 < (dt * (p_still - p_pzc)) < 0.7:
                     p_pzc = p_still
-                if (time[ppk] - time[p_pzc]) > 2:  # TODO parameter?
+                if (time[ppk] - time[p_pzc]).total_seconds() > 2:  # TODO parameter?
                     raise IndexError
             except IndexError:
                 continue
             try:  # find the end of the transition
                 n_lmin = acc_lmin[acc_lmin > ppk][0]
                 n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                if (time[n_lmax] - time[ppk]) > 2:  # TODO parameter
+                if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # TODO parameter
                     raise IndexError
             except IndexError:
                 continue
 
             # quatity checks
-            if (time[ppk] - time[p_pzc]) > self.dur_factor * (time[n_lmax] - time[ppk]):
+            if (time[ppk] - time[p_pzc]).total_seconds() > self.dur_factor * (time[n_lmax] - time[ppk]).total_seconds():
                 continue
             test_ind = n_lmax - end_still if (n_lmax - end_still) < v_pos.size else -1
             if (v_pos[test_ind] - v_pos[p_pzc - end_still]) < self.thresh['stand displacement']:
@@ -1396,7 +1396,7 @@ class Displacement:
 
             # sts assignment
             if len(sts) > 0:
-                if (time[p_pzc] - sts[list(sts.keys())[-1]].end_time) > 0.4:  # prevent overlap TODO parameter?
+                if (time[p_pzc] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap TODO param?
                     # sts.append((time[p_pzc], time[n_lmax]))
                     sts[f'{time[p_pzc]}'] = Transition(times=(time[p_pzc], time[n_lmax]),
                                                        v_displacement=v_pos[test_ind] - v_pos[p_pzc - end_still])
@@ -1500,9 +1500,9 @@ class Displacement:
         stops = where(diff(acc_still.astype(int)) == -1)[0]
 
         if acc_still[0]:
-            still_starts = append(0, starts)
+            starts = append(0, starts)
         if acc_still[-1]:
-            still_stops = append(stops, len(acc_still) - 1)
+            stops = append(stops, len(acc_still) - 1)
 
         # TODO Could consider adding all the masks together and filtering, then taking values above a threshold
 
