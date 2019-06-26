@@ -1102,13 +1102,17 @@ class Stillness:
                     if v_vel[-1] < 1e-2:
                         neg_zc = array([v_pos.size - 1])
             # ensure that the vertical velocity indicates that it is a peak as well
-            if v_vel[ppk - end_still] < self.thresh['transition velocity']:
+            if v_vel[ppk - prev_int_start] < self.thresh['transition velocity']:
                 continue
             try:  # previous and next zero crossings
-                p_pzc = pos_zc[pos_zc + end_still < ppk][-1]
-                n_nzc = neg_zc[neg_zc + end_still < ppk][0]
+                p_pzc = pos_zc[pos_zc + prev_int_start < ppk][-1]
+                n_nzc = neg_zc[neg_zc + prev_int_start < ppk][0]
             except IndexError:
                 continue
+
+            # TODO
+            # TODO look at using prev_int_start instead of end_still
+            # TODO
 
             # quality checks
             if (time[ppk] - time[end_still]).total_seconds() > self.dur_factor * (time[n_lmax]
