@@ -1389,8 +1389,8 @@ class Displacement:
             except IndexError:
                 continue
 
-            # quatity checks
-            if (time[ppk] - time[sts_start]).total_seconds() > self.dur_factor * (time[sts_start]
+            # quality checks
+            if (time[ppk] - time[sts_start]).total_seconds() > self.dur_factor * (time[sts_end]
                                                                                   - time[ppk]).total_seconds():
                 continue
             test_ind = sts_end - end_still if (sts_end - end_still) < v_pos.size else -1
