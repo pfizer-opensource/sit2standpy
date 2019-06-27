@@ -1110,10 +1110,6 @@ class Stillness:
             except IndexError:
                 continue
 
-            # TODO
-            # TODO look at using prev_int_start instead of end_still
-            # TODO
-
             # quality checks
             if (time[ppk] - time[end_still]).total_seconds() > self.dur_factor * (time[n_lmax]
                                                                                   - time[ppk]).total_seconds():
@@ -1125,12 +1121,21 @@ class Stillness:
             # STS creation
             if len(sts) > 0:
                 if (time[end_still] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.5:  # prevent overlap
-                    # old uses v_pos[n_nzc] - v_pos[p_pzc], though this does not match the duration of the sts
+                    v_disp = v_pos[n_lmax - end_still] - v_pos[0]
+                    v_max, v_min = v_vel[0:n_lmax - end_still].max(), v_vel[0:n_lmax - end_still].min()
+                    a_max, a_min = mag_acc_r[end_still:n_lmax].max(), mag_acc_r[end_still:n_lmax].min()
                     sts[f'{time[end_still]}'] = Transition((time[end_still], time[n_lmax]),
-                                                           v_displacement=v_pos[n_lmax - end_still] - v_pos[0])
+                                                           v_displacement=v_disp, max_v_velocity=v_max,
+                                                           min_v_velocity=v_min, max_acceleration=a_max,
+                                                           min_acceleration=a_min)
             else:
+                v_disp = v_pos[n_lmax - end_still] - v_pos[0]
+                v_max, v_min = v_vel[0:n_lmax - end_still].max(), v_vel[0:n_lmax - end_still].min()
+                a_max, a_min = mag_acc_r[end_still:n_lmax].max(), mag_acc_r[end_still:n_lmax].min()
                 sts[f'{time[end_still]}'] = Transition((time[end_still], time[n_lmax]),
-                                                       v_displacement=v_pos[n_lmax - end_still] - v_pos[0])
+                                                       v_displacement=v_disp, max_v_velocity=v_max,
+                                                       min_v_velocity=v_min, max_acceleration=a_max,
+                                                       min_acceleration=a_min)
 
         # check to ensure no partial transitions
         vd = [sts[i].v_displacement for i in sts]
@@ -1409,16 +1414,16 @@ class Displacement:
             if len(sts) > 0:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap TODO param?
                     v_disp = v_pos[sts_end_int] - v_pos[sts_start_int]
-                    v_max, v_min = max(v_vel[sts_start:sts_end]), min(v_vel[sts_start:sts_end])
-                    a_max, a_min = max(mag_acc_r[sts_start:sts_end]), min(mag_acc_r[sts_start:sts_end])
+                    v_max, v_min = v_vel[sts_start:sts_end].max(), v_vel[sts_start:sts_end].min()
+                    a_max, a_min = mag_acc_r[sts_start:sts_end].max(), mag_acc_r[sts_start:sts_end].min()
                     sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
                                                            v_displacement=v_disp, max_v_velocity=v_max,
                                                            min_v_velocity=v_min, max_acceleration=a_max,
                                                            min_acceleration=a_min)
             else:
                 v_disp = v_pos[sts_end_int] - v_pos[sts_start_int]
-                v_max, v_min = max(v_vel[sts_start:sts_end]), min(v_vel[sts_start:sts_end])
-                a_max, a_min = max(mag_acc_r[sts_start:sts_end]), min(mag_acc_r[sts_start:sts_end])
+                v_max, v_min = v_vel[sts_start:sts_end].max(), v_vel[sts_start:sts_end].min()
+                a_max, a_min = mag_acc_r[sts_start:sts_end].max(), mag_acc_r[sts_start:sts_end].min()
                 sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
                                                        v_displacement=v_disp, max_v_velocity=v_max,
                                                        min_v_velocity=v_min, max_acceleration=a_max,
