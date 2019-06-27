@@ -16,6 +16,9 @@ from pysit2stand import utility as u_
 from pysit2stand.common import Transition
 
 
+__all__ = ['Similarity', 'Stillness', 'Displacement']
+
+
 class OldStillness:
     def __init__(self, gravity_value=9.81, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
                  jerk_mov_std_thresh=5, moving_window=0.3, tr_pk_diff=0.5, acc_peak_params=None,
@@ -411,7 +414,7 @@ class Similarity:
         return sts, {'plot': similar}
 
 
-class Position:
+class __Position:
     def __init__(self, gravity=9.81, heigh_thresh=0.15, vel_thresh=0.1, grav_pass_ord=4, grav_pass_cut=0.8,
                  still_window=0.5, mov_window=0.3, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
                  jerk_mov_std_thresh=5):
@@ -441,7 +444,7 @@ class Position:
         v_acc = npsum(grav_est * raw_acc, axis=1)
 
         # find still periods in the data
-        acc_still, stops = Position._stillness(mag_acc, dt, self.mov_wind, self.grav, self.avg_thresh,
+        acc_still, stops = __Position._stillness(mag_acc, dt, self.mov_wind, self.grav, self.avg_thresh,
                                                        self.std_thresh, self.j_avg_thresh, self.j_std_thresh)
         if acc_still[-1]:
             stops = append(stops, acc_still.size)
@@ -485,7 +488,7 @@ class Position:
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
-                v_pos, v_vel = Position._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
+                v_pos, v_vel = __Position._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
             v_still = npabs(v_vel) < self.vel_thresh
