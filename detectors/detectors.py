@@ -19,6 +19,99 @@ from pysit2stand.common import Transition
 __all__ = ['Similarity', 'Stillness', 'Displacement']
 
 
+# some common methods
+def _get_stillness(mag_acc_f, dt, window, gravity, thresholds):
+    """
+    Stillness determination of acceleration magnitude data
+
+    Parameters
+    ----------
+    mag_acc_f : numpy.ndarray
+        (N, 3) array of filtered acceleration data.
+    dt : float
+        Sampling time difference, in seconds.
+    window : float
+        Moving statistics window length, in seconds.
+    gravity : float
+        Gravitational acceleration, as measured by the sensor during static sitting or standing.
+    thresholds : dict
+        Dictionary of the 4 thresholds to be used - acceleration and jerk moving averages and standard deviations.
+
+    Returns
+    -------
+    acc_still : numpy.ndarray
+        (N, ) boolean array indicating stillness
+    starts : numpy.ndarray
+        (Q, ) array of where stillness ends, where by necessity has to follow: Q < N / 2
+    stops : numpy.ndarray
+        (P, ) array of where stillness ends, where by necessity has to follow: P < N / 2
+    """
+    # calculate the sample window from the time window
+    n_window = int(around(window / dt))
+    # compute the acceleration moving standard deviation
+    am_avg, am_std, _ = u_.mov_stats(mag_acc_f, n_window)
+    # compute the jerk
+    jerk = gradient(mag_acc_f, dt, edge_order=2)
+    # compute the jerk moving average and standard deviation
+    jm_avg, jm_std, _ = u_.mov_stats(jerk, n_window)
+
+    # create masks from the moving statistics of acceleration and jerk
+    am_avg_mask = npabs(am_avg - gravity) < thresholds['accel moving avg']
+    am_std_mask = am_std < thresholds['accel moving std']
+    jm_avg_mask = npabs(jm_avg) < thresholds['jerk moving avg']
+    jm_std_mask = jm_std < thresholds['jerk moving std']
+
+    acc_still = am_avg_mask & am_std_mask & jm_avg_mask & jm_std_mask
+    starts = where(diff(acc_still.astype(int)) == 1)[0]
+    stops = where(diff(acc_still.astype(int)) == -1)[0]
+
+    if acc_still[0]:
+        starts = append(0, starts)
+    if acc_still[-1]:
+        stops = append(stops, len(acc_still) - 1)
+
+    # TODO Could consider adding all the masks together and filtering, then taking values above a threshold
+
+    return acc_still, starts, stops
+
+
+def _get_position(acc, still_at_end):
+    """
+    Double integrate acceleration along 1 axis (ie 1D) to get velocity and position
+
+    Parameters
+    ----------
+    acc : numpy.ndarray
+        (N, ) array of acceleration values to integrate
+    still_at_end : bool
+        Whether or not the acceleration ends with a still period. Determines how drift is mitigated.
+
+    Returns
+    -------
+    vel : numpy.ndarray
+        (N, ) array of velocities
+    pos : numpy.ndarray
+        (N, ) array of positions
+    """
+    x = arange(acc.size)
+
+    # integrate and drift mitigate
+    if not still_at_end:
+        # fc = butter(1, [2 * 0.1 * dt, 2 * 5 * dt], btype='band')
+        # vel = cumtrapz(filtfilt(fc[0], fc[1], acc), dx=dt, initial=0)
+        vel = detrend(cumtrapz(acc, dx=dt, initial=0))
+        if npabs(vel[0]) > 0.05:  # if too far away from zero
+            vel -= vel[0]  # reset the beginning back to 0, the integration always starts with stillness
+    else:
+        vel_dr = cumtrapz(acc, dx=dt, initial=0)
+        vel = vel_dr - (((vel_dr[-1] - vel_dr[0]) / (x[-1] - x[0])) * x)  # no intercept
+
+    # integrate the velocity to get position
+    pos = cumtrapz(vel, dx=dt, initial=0)
+
+    return vel, pos
+
+
 class OldStillness:
     def __init__(self, gravity_value=9.81, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
                  jerk_mov_std_thresh=5, moving_window=0.3, tr_pk_diff=0.5, acc_peak_params=None,
@@ -414,7 +507,7 @@ class Similarity:
         return sts, {'plot': similar}
 
 
-class __Position:
+class Position:
     def __init__(self, gravity=9.81, heigh_thresh=0.15, vel_thresh=0.1, grav_pass_ord=4, grav_pass_cut=0.8,
                  still_window=0.5, mov_window=0.3, mov_avg_thresh=0.25, mov_std_thresh=0.5, jerk_mov_avg_thresh=3,
                  jerk_mov_std_thresh=5):
@@ -444,8 +537,8 @@ class __Position:
         v_acc = npsum(grav_est * raw_acc, axis=1)
 
         # find still periods in the data
-        acc_still, stops = __Position._stillness(mag_acc, dt, self.mov_wind, self.grav, self.avg_thresh,
-                                                       self.std_thresh, self.j_avg_thresh, self.j_std_thresh)
+        acc_still, stops = Position._stillness(mag_acc, dt, self.mov_wind, self.grav, self.avg_thresh,
+                                               self.std_thresh, self.j_avg_thresh, self.j_std_thresh)
         if acc_still[-1]:
             stops = append(stops, acc_still.size)
         starts = where(diff(acc_still.astype(int)) == 1)[0]
@@ -488,7 +581,7 @@ class __Position:
             int_stop = int_stop if int_stop < mag_acc.shape[0] else mag_acc.shape[0] - 1  # make sure not longer
 
             if pint_stop < int_start or pint_stop < int_stop:
-                v_pos, v_vel = __Position._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
+                v_pos, v_vel = Position._get_position(v_acc[int_start:int_stop], acc_still[int_start:int_stop], dt)
                 pos_lines.append(Line2D(time[int_start:int_stop], v_pos, color='C5', linewidth=1.5))
 
             v_still = npabs(v_vel) < self.vel_thresh
