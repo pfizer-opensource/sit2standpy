@@ -17,9 +17,9 @@ class Transition:
         return f'Postural Transition'
 
     def __repr__(self):
-        return f'Postural Transition (Duration: {self.duration:.2f})'
+        return f'{self.long_type} (Duration: {self.duration:.2f})'
 
-    def __init__(self, times, v_displacement=None, max_v_velocity=None, min_v_velocity=None,
+    def __init__(self, times, t_type='SiSt', v_displacement=None, max_v_velocity=None, min_v_velocity=None,
                  max_acceleration=None, min_acceleration=None):
         """
         Object for storing information about a postural transition
@@ -28,9 +28,17 @@ class Transition:
         if isinstance(times, (tuple, list, ndarray)):
             self.start_time = times[0]
             self.end_time = times[1]
-            self.duration = self.end_time - self.start_time
+            self.duration = (self.end_time - self.start_time).total_seconds()
         else:
             raise ValueError('times must be a tuple or a list-like.')
+
+        self.ttype = t_type
+        if self.ttype == 'SiSt':
+            self.long_type = 'Sit to Stand'
+        elif self.ttype == 'StSi':
+            self.long_type = 'Stand to Sit'
+        else:
+            raise ValueError('Unrecognized transition type (t_type). Must be either "SiSt" or "StSi".')
 
         self.v_displacement = v_displacement
         self.max_v_velocity = max_v_velocity

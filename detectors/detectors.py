@@ -637,25 +637,25 @@ class Displacement:
                                                                                   - time[ppk]).total_seconds():
                 continue
             # test_ind = sts_end - end_still if (sts_end - end_still) < v_pos.size else -1
-            sts_start_int = sts_start - prev_int_start  # integrated value start index
-            sts_end_int = sts_end - prev_int_start  # integrated value end index
-            if (v_pos[sts_end_int] - v_pos[sts_start_int]) < self.thresh['stand displacement']:
+            t_start_i = sts_start - prev_int_start  # integrated value start index
+            t_end_i = sts_end - prev_int_start  # integrated value end index
+            if (v_pos[t_end_i] - v_pos[t_start_i]) < self.thresh['stand displacement']:
                 continue
 
             # sts assignment
             if len(sts) > 0:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap TODO param?
-                    v_disp = v_pos[sts_end_int] - v_pos[sts_start_int]
-                    v_max, v_min = v_vel[sts_start:sts_end].max(), v_vel[sts_start:sts_end].min()
-                    a_max, a_min = mag_acc_r[sts_start:sts_end].max(), mag_acc_r[sts_start:sts_end].min()
+                    v_disp = v_pos[t_end_i] - v_pos[t_start_i]
+                    v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
+                    a_max, a_min = mag_acc_r[t_start_i:t_end_i].max(), mag_acc_r[t_start_i:t_end_i].min()
                     sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
                                                            v_displacement=v_disp, max_v_velocity=v_max,
                                                            min_v_velocity=v_min, max_acceleration=a_max,
                                                            min_acceleration=a_min)
             else:
-                v_disp = v_pos[sts_end_int] - v_pos[sts_start_int]
-                v_max, v_min = v_vel[sts_start:sts_end].max(), v_vel[sts_start:sts_end].min()
-                a_max, a_min = mag_acc_r[sts_start:sts_end].max(), mag_acc_r[sts_start:sts_end].min()
+                v_disp = v_pos[t_end_i] - v_pos[t_start_i]
+                v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
+                a_max, a_min = mag_acc_r[t_start_i:t_end_i].max(), mag_acc_r[t_start_i:t_end_i].min()
                 sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
                                                        v_displacement=v_disp, max_v_velocity=v_max,
                                                        min_v_velocity=v_min, max_acceleration=a_max,
