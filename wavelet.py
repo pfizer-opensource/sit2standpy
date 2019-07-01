@@ -52,7 +52,7 @@ class Wavelet:
             if 'height' in self.pk_pwr_par:
                 del self.pk_pwr_par['height']
 
-    def fit(self, accel, time, detector, acc_filter):
+    def fit(self, accel, time, detector, acc_filter, fs=None):
         """
         Fit the data and determine sit-to-stand transitions start and stop times.
 
@@ -74,6 +74,8 @@ class Wavelet:
             Acceleration filter object, used to filter and reconstruct the magnitude of the acceleration. Must have
             an apply() method (eg acc_filter.apply()) that takes the raw acceleration, and sampling frequency only
             as arguments.
+        fs : {None, float}, optional
+            Sampling frequency. If none, calculated from the time. Default is None.
 
         Returns
         -------
@@ -81,8 +83,11 @@ class Wavelet:
             List of tuples of (STS start, STS end) for all of the detected STS transitions in the acceleration data.
         """
         # calculate the sampling time and frequency
-        dt = mean(diff(time)) / timedelta64(1, 's')  # convert to seconds
-        fs = 1 / dt
+        if fs is None:
+            dt = mean(diff(time)) / timedelta64(1, 's')  # convert to seconds
+            fs = 1 / dt
+        else:
+            dt = 1 / fs
 
         # filter the raw acceleration using the AccFilter object
         self.macc_f, self.macc_r = acc_filter.apply(accel, fs)
