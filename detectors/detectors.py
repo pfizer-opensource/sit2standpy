@@ -627,16 +627,10 @@ class Displacement:
                 # possibly use the end of stillness if it is close enough to the ZC
                 if -0.5 < (dt * (p_still - sts_start)) < 0.7:
                     sts_start = p_still
-                # if (time[ppk] - time[sts_start]).total_seconds() > 2:  # TODO parameter?
-                #     raise IndexError
             except IndexError:
                 continue
             try:  # find the end of the transition
-                # n_lmin = acc_lmin[acc_lmin > ppk][0]
-                # n_lmax = acc_lmax[acc_lmax > n_lmin][0]
                 sts_end = neg_zc[neg_zc > ppk][0]
-                # if (time[sts_end] - time[ppk]).total_seconds() > 2:  # TODO parameter
-                #     raise IndexError
             except IndexError:
                 continue
 
@@ -646,7 +640,6 @@ class Displacement:
             if (time[ppk] - time[sts_start]).total_seconds() > self.dur_factor * (time[sts_end]
                                                                                   - time[ppk]).total_seconds():
                 continue
-            # test_ind = sts_end - end_still if (sts_end - end_still) < v_pos.size else -1
             t_start_i = sts_start - prev_int_start  # integrated value start index
             t_end_i = sts_end - prev_int_start  # integrated value end index
             if (v_pos[t_end_i] - v_pos[t_start_i]) < self.thresh['stand displacement']:
@@ -654,7 +647,7 @@ class Displacement:
 
             # sts assignment
             if len(sts) > 0:
-                if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap TODO param?
+                if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap
                     v_disp = v_pos[t_end_i] - v_pos[t_start_i]
                     v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
                     a_max, a_min = mag_acc_r[t_start_i:t_end_i].max(), mag_acc_r[t_start_i:t_end_i].min()
