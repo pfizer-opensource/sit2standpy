@@ -43,7 +43,7 @@ class Wavelet:
             self.pk_pwr_stop = peak_pwr_band[1]
 
         if peak_pwr_par is None:
-            self.pk_pwr_par = {}
+            self.pk_pwr_par = {'height': 90}
         else:
             self.pk_pwr_par = peak_pwr_par
 

@@ -476,7 +476,7 @@ class Stillness:
 
 class Displacement:
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
-                 moving_window=0.3, duration_factor=3, displacement_factor=0.75, lmax_kwargs=None,
+                 moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
@@ -487,8 +487,7 @@ class Displacement:
         gravity : float, optional
             Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
         thresholds : {None, dict}, optional
-            Either None, for the default, or a dictionary of thresholds to change. See
-            PosiStillDetector.default_thresholds for a dictionary of the thresholds and their default values. Default
+            Either None, for the default, or a dictionary of thresholds to change. See Notes. Default
             is None, which uses the default values.
         gravity_pass_ord : int, optional
             Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
@@ -513,15 +512,26 @@ class Displacement:
             for no specified arguments. See scipy.signal.find_peaks for possible arguments.
         lmin_kwargs : {None, dict}, optional
             Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
-            for no specified arguments. See scipy.signal.find_peaks for the possible arguments.
+            which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
+            possible arguments.
+
+        Notes
+        -----
+        Default thresholds:
+            stand displacement: 0.125
+            transition velocity: 0.2
+            accel moving avg: 0.2
+            accel moving std: 0.1
+            jerk moving avg: 2.5
+            jerk moving std: 3
         """
         # set the default thresholds
-        self.default_thresholds = {'stand displacement': 0.15,
+        self.default_thresholds = {'stand displacement': 0.125,
                                    'transition velocity': 0.2,
-                                   'accel moving avg': 0.25,
-                                   'accel moving std': 0.5,
-                                   'jerk moving avg': 3,
-                                   'jerk moving std': 5}
+                                   'accel moving avg': 0.2,
+                                   'accel moving std': 0.1,
+                                   'jerk moving avg': 2.5,
+                                   'jerk moving std': 3}
         # assign attributes
         self.grav = gravity
 
@@ -541,7 +551,7 @@ class Displacement:
         self.disp_factor = displacement_factor
 
         if lmin_kwargs is None:
-            self.lmin_kw = {}
+            self.lmin_kw = {'height': -9.5}
         else:
             self.lmin_kw = lmin_kwargs
         if lmax_kwargs is None:
