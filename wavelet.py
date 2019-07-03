@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 plt.style.use(['ggplot', 'presentation'])
 
 
-class Wavelet:
+class Sit2Stand:
     def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
         """
         Wavelet based detection of sit-to-stand transitions
