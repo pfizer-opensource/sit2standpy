@@ -648,6 +648,8 @@ class Displacement:
                 continue
             t_start_i = sts_start - prev_int_start  # integrated value start index
             t_end_i = sts_end - prev_int_start  # integrated value end index
+            if t_start_i == t_end_i:
+                continue
             if (v_pos[t_end_i] - v_pos[t_start_i]) < self.thresh['stand displacement']:
                 continue
 
