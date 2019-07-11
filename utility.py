@@ -42,11 +42,13 @@ def mov_stats(seq, window):
 
     rw_seq = rolling_window(seq, window)
 
-    m_mn[pad:-pad + 1] = mean(rw_seq, axis=-1)
-    m_st[pad:-pad + 1] = std(rw_seq, axis=-1, ddof=1)
+    n = rw_seq.shape[0]
 
-    m_mn[:pad], m_mn[-pad:] = m_mn[pad], m_mn[-pad-1]
-    m_st[:pad], m_st[-pad:] = m_st[pad], m_st[-pad-1]
+    m_mn[pad:pad + n] = mean(rw_seq, axis=-1)
+    m_st[pad:pad + n] = std(rw_seq, axis=-1, ddof=1)
+
+    m_mn[:pad], m_mn[pad + n:] = m_mn[pad], m_mn[-pad-1]
+    m_st[:pad], m_st[pad + n:] = m_st[pad], m_st[-pad-1]
     return m_mn, m_st, pad
 
 
