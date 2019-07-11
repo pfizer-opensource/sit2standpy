@@ -13,7 +13,7 @@ from scipy.signal import find_peaks, butter, filtfilt, detrend
 from matplotlib.lines import Line2D
 
 from pysit2stand import utility as u_
-from pysit2stand.common import Transition
+from pysit2stand.common import Transition, TransitionQuantifier as TQ
 
 
 __all__ = ['Similarity', 'Stillness', 'Displacement']
@@ -477,7 +477,7 @@ class Stillness:
 class Displacement:
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
-                 lmin_kwargs=None):
+                 lmin_kwargs=None, trans_quant=TQ()):
         """
         Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
         vertical displacement of a lumbar accelerometer for ensuring a transition.
@@ -514,6 +514,10 @@ class Displacement:
             Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
             which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
             possible arguments.
+        trans_quant : TransitionQuantifier
+            TransitionQuantifier object, which contains a 'quantify' method, which accepts the following arguments:
+            times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
+            pysit2stand.common.TransitionQuantifier
 
         Notes
         -----
@@ -558,6 +562,8 @@ class Displacement:
             self.lmax_kw = {}
         else:
             self.lmax_kw = lmax_kwargs
+
+        self.tq = trans_qaunt
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         # find stillness
@@ -648,21 +654,31 @@ class Displacement:
             # sts assignment
             if len(sts) > 0:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap
-                    v_disp = v_pos[t_end_i] - v_pos[t_start_i]
-                    v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
-                    a_max, a_min = mag_acc_r[t_start_i:t_end_i].max(), mag_acc_r[t_start_i:t_end_i].min()
-                    sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
-                                                           v_displacement=v_disp, max_v_velocity=v_max,
-                                                           min_v_velocity=v_min, max_acceleration=a_max,
-                                                           min_acceleration=a_min)
+                    # v_disp = v_pos[t_end_i] - v_pos[t_start_i]
+                    # v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
+                    # a_max = mag_acc_r[t_start_i + prev_int_start:t_end_i + prev_int_start].max()
+                    # a_min = mag_acc_r[t_start_i + prev_int_start:t_end_i + prev_int_start].min()
+                    # sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
+                    #                                        v_displacement=v_disp, max_v_velocity=v_max,
+                    #                                        min_v_velocity=v_min, max_acceleration=a_max,
+                    #                                        min_acceleration=a_min)
+                    sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                                                                 mag_acc[sts_start:sts_end],
+                                                                 mag_acc_r[sts_start:sts_end],
+                                                                 v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])
             else:
-                v_disp = v_pos[t_end_i] - v_pos[t_start_i]
-                v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
-                a_max, a_min = mag_acc_r[t_start_i:t_end_i].max(), mag_acc_r[t_start_i:t_end_i].min()
-                sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
-                                                       v_displacement=v_disp, max_v_velocity=v_max,
-                                                       min_v_velocity=v_min, max_acceleration=a_max,
-                                                       min_acceleration=a_min)
+                # v_disp = v_pos[t_end_i] - v_pos[t_start_i]
+                # v_max, v_min = v_vel[t_start_i:t_end_i].max(), v_vel[t_start_i:t_end_i].min()
+                # a_max = mag_acc_r[t_start_i + prev_int_start:t_end_i + prev_int_start].max()
+                # a_min = mag_acc_r[t_start_i + prev_int_start:t_end_i + prev_int_start].min()
+                # sts[f'{time[sts_start]}'] = Transition(times=(time[sts_start], time[sts_end]),
+                #                                        v_displacement=v_disp, max_v_velocity=v_max,
+                #                                        min_v_velocity=v_min, max_acceleration=a_max,
+                #                                        min_acceleration=a_min)
+                sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                                                             mag_acc[sts_start:sts_end],
+                                                             mag_acc_r[sts_start:sts_end],
+                                                             v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])
 
         # check to ensure no partial transitions
         vd = [sts[i].v_displacement for i in sts]
