@@ -563,7 +563,7 @@ class Displacement:
         else:
             self.lmax_kw = lmax_kwargs
 
-        self.tq = trans_qaunt
+        self.tq = trans_quant
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         # find stillness
