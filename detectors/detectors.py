@@ -402,14 +402,14 @@ class Stillness:
         for ppk in power_peaks:
             try:  # look for any preceding end of any stillness
                 end_still = still_stops[still_stops < ppk][-1]
-                if (time[ppk] - time[end_still]).total_seconds() > 2:  # ensure not too far back TODO parameter?
+                if (time[ppk] - time[end_still]).total_seconds() > 2:  # ensure not too far back
                     raise IndexError
             except IndexError:
                 continue
             try:  # look for the following local min -> local max pattern
                 n_lmin = acc_lmin[acc_lmin > ppk][0]
                 n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # ensure not too far ahead TODO parameter?
+                if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # ensure not too far ahead
                     raise IndexError
             except IndexError:
                 continue
@@ -455,7 +455,7 @@ class Stillness:
             if (time[ppk] - time[end_still]).total_seconds() > self.dur_factor * (time[n_lmax]
                                                                                   - time[ppk]).total_seconds():
                 continue
-            if npabs((time[p_pzc + end_still] - time[end_still]).total_seconds()) > 0.35:  # TODO parameter?
+            if npabs((time[p_pzc + end_still] - time[end_still]).total_seconds()) > 0.35:
                 continue
             if (v_pos[n_nzc] - v_pos[p_pzc]) < self.thresh['stand displacement']:
                 continue
