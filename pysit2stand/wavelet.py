@@ -7,9 +7,6 @@ June 2019
 from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64
 from scipy.signal import find_peaks
 import pywt
-import matplotlib.pyplot as plt
-
-plt.style.use(['ggplot', 'presentation'])
 
 
 class Sit2Stand:
