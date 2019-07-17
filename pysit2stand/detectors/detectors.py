@@ -10,7 +10,6 @@ from numpy import around, gradient, abs as npabs, where, diff, sum as npsum, isc
 from numpy.linalg import norm
 from scipy.integrate import cumtrapz
 from scipy.signal import find_peaks, butter, filtfilt, detrend
-from matplotlib.lines import Line2D
 
 from pysit2stand.utility import Transition, mov_stats
 from pysit2stand.quantify import TransitionQuantifier as TQ
@@ -228,7 +227,6 @@ class Stillness:
 
         # iterate over the power peaks
         sts = {}
-        pos_lines = []
 
         prev_int_start = -1
         prev_int_stop = -1
@@ -260,8 +258,6 @@ class Stillness:
             # INTEGRATE between the determined indices
             if end_still < prev_int_start or start_still > prev_int_stop:
                 v_vel, v_pos = _integrate_acc(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
-                # plotting of the position
-                pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                 # set used limits
                 prev_int_start = end_still
@@ -314,10 +310,7 @@ class Stillness:
         for elem in array(list(sts.keys()))[vd_high_diff]:
             del sts[elem]
 
-        # plot the still periods
-        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
-
-        return sts, {'pos lines': pos_lines, 'lines': [l1]}
+        return sts
 
 
 class Displacement:
@@ -434,7 +427,6 @@ class Displacement:
 
         # iterate over the power peaks
         sts = {}
-        pos_lines = []
 
         prev_int_start = -1
         prev_int_stop = -1
@@ -460,8 +452,6 @@ class Displacement:
             # INTEGRATE between the determined indices
             if end_still < prev_int_start or start_still > prev_int_stop:
                 v_vel, v_pos = _integrate_acc(v_acc[end_still:start_still] - self.grav, dt, still_at_end)
-                # plotting of the position
-                pos_lines.append(Line2D(time[end_still:start_still], v_pos, color='C5', linewidth=1.5))
 
                 # set used limits
                 prev_int_start = end_still
@@ -519,10 +509,7 @@ class Displacement:
         for elem in array(list(sts.keys()))[vd_high_diff]:
             del sts[elem]
 
-        # plot the still periods
-        l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
-
-        return sts, {'pos lines': pos_lines, 'lines': [l1]}
+        return sts
 
 
 class Similarity:

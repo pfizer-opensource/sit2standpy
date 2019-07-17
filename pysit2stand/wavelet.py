@@ -106,7 +106,7 @@ class Sit2Stand:
             self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
-        sts, self.ext = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
+        sts = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
 
         return sts
 
