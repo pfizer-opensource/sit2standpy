@@ -114,6 +114,14 @@ def _integrate_acc(acc, dt, still_at_end):
 
 
 class Stillness:
+    def __str__(self):
+        return f'Stillness-based Transition Detector'
+
+    def __repr__(self):
+        return f'Sit2Stand Stillness Detector (Gravity Filter Order: {self.grav_ord}, Gravity Filter Cutoff: ' \
+            f'{self.grav_cut}Hz, Long Stillness: {self.long_still}s, Moving Window: {self.mov_window}s, Duration ' \
+            f'Factor: {self.dur_factor}, Displacement Factor: {self.disp_factor})'
+
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None, trans_quant=TQ()):
@@ -316,6 +324,14 @@ class Stillness:
 
 
 class Displacement:
+    def __str__(self):
+        return f'Displacement-based Transition Detector'
+
+    def __repr__(self):
+        return f'Sit2Stand Displacement Detector (Gravity Filter Order: {self.grav_ord}, Gravity Filter Cutoff: ' \
+            f'{self.grav_cut}Hz, Long Stillness: {self.long_still}s, Moving Window: {self.mov_window}s, Duration ' \
+            f'Factor: {self.dur_factor}, Displacement Factor: {self.disp_factor})'
+
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None, trans_quant=TQ()):
@@ -515,6 +531,14 @@ class Displacement:
 
 
 class Similarity:
+    def __str__(self):
+        return f'Similarity-based Transition Detector'
+
+    def __repr__(self):
+        return f'Sit2Stand Similarity Detector (Low Freq. Band: [{self.low_f[0]}, {self.low_f[1]}], High Freq. Band: ' \
+            f'[{self.high_f[0]}, {self.high_f[1]}, Similarity Abs. Tol.: {self.sim_atol}, Similarity Rel. Tol.: ' \
+            f'{self.sim_rtol}, Start Position: {self.start_pos})'
+
     def __init__(self, gravity_value=9.81, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0,
                  similarity_rtol=0.15, tr_pk_diff=0.5, start_pos='fixed', acc_peak_params=None, acc_trough_params=None):
         """

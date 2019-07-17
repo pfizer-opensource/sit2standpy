@@ -47,6 +47,13 @@ class Transition:
 
 
 class AccFilter:
+    def __str__(self):
+        return f'Acceleration Pre-Processing Filter'
+
+    def __repr__(self):
+        return f'Acceleration Filter (Method: {self.method}, Lowpass Order: {self.lp_ord}, Lowpass Cutoff: ' \
+            f'{self.lp_cut}Hz, Window: {self.window}s)'
+
     def __init__(self, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
                  window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
         """

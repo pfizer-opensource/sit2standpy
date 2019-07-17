@@ -10,6 +10,13 @@ import pywt
 
 
 class Sit2Stand:
+    def __str__(self):
+        return f'Sit-to-Stand Detection Framework'
+
+    def __repr__(self):
+        return f'Sit-to-Stand Detector (Continuous Wavelet: {self.cwave}, Peak Power Band: [{self.pk_pwr_start}, ' \
+            f'{self.pk_pwr_stop}], Use StDev Power Height: {self.std_height})'
+
     def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
         """
         Wavelet based detection of sit-to-stand transitions

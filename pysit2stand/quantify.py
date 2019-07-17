@@ -9,6 +9,12 @@ from pysit2stand.utility import Transition
 
 
 class TransitionQuantifier:
+    def __str__(self):
+        return f'Default Transition Quantifier'
+
+    def __repr__(self):
+        return f'Default Transition Quantifier'
+
     def __init__(self):
         """
         Quantification of a sit-to-stand transition.
