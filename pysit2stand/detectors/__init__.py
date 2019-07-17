@@ -1,1 +1,1 @@
-from pysit2stand.detectors import *
+from pysit2stand.detectors.detectors import *

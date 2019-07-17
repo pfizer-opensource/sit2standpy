@@ -13,7 +13,7 @@ from scipy.signal import find_peaks, butter, filtfilt, detrend
 from matplotlib.lines import Line2D
 
 from pysit2stand.utility import Transition, mov_stats
-from pysit2stand.pysit2stand.quantify import TransitionQuantifier as TQ
+from pysit2stand.quantify import TransitionQuantifier as TQ
 
 
 __all__ = ['Similarity', 'Stillness', 'Displacement']
