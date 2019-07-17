@@ -1,2 +1,2 @@
 # pysit2stand
-Python based module framework for detecting sit-to-stand transitions
+Python based framework for detecting sit-to-stand transitions using acceleration from a lumbar mounted sensor.
