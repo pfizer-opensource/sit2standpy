@@ -114,172 +114,6 @@ def _integrate_acc(acc, dt, still_at_end):
     return vel, pos
 
 
-class Similarity:
-    def __init__(self, gravity_value=9.81, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0,
-                 similarity_rtol=0.15, tr_pk_diff=0.5, start_pos='fixed', acc_peak_params=None, acc_trough_params=None):
-        """
-        Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
-        in different power bands
-
-        Parameters
-        ----------
-        gravity_value : float, optional
-            Value of gravitational acceleration of the sensor during still standing or sitting. Default is 9.81m/s^2.
-        low_f_band : {array_like, float, int}, optional
-            Low frequency limits for the low freq. power band, obtained by summing CWT coefficients in this band of
-            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
-            maximum value, with 0 Hz as the minimum. Default is [0, 0.5].
-        high_f_band : {array_like, float, int}, optional
-            High frequency limits for the high freq. power band, obtained by summing CWT coefficients in this band of
-            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
-            maximum value, with 0 Hz as the minimum. Default is [0, 3].
-        similarity_atol : {float, int}, optional
-            Absolute tolerance for determining similarity between the high and low frequency power bands. Default is 0
-        similarity_rtol : {float, int}, optional
-            Relative tolerance for dtermining similarity between the high and low frequency power bands. Default is 0.15
-        tr_pk_diff : float, optional
-            Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
-            time for the STS transitions. Default is 0.5 m/s^2.
-        start_pos : {'fixed', 'variable'}, optional
-            How the start of STS transitions is determined. Either a fixed location, or can be variable among several
-            possible locations, and the best location is chosen. Default is 'fixed'
-        acc_peak_params : {None, dict}, optional
-            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
-            acceleration magnitude. Default is None, for which the find_peaks defaults will be used.
-        acc_trough_params : {None, dict}, optional
-            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding troughs
-            (local minima) in the acceleration magnitude. Default is None, for which the find_peaks defaults will be
-            used.
-        """
-        self.gravity = gravity_value
-
-        if isinstance(low_f_band, (float, int)):
-            self.low_f = [0, low_f_band]
-        else:
-            self.low_f = low_f_band  # TODO add check for length
-        if isinstance(high_f_band, (float, int)):
-            self.high_f = [0, high_f_band]
-        else:
-            self.high_f = high_f_band
-
-        self.sim_atol = similarity_atol
-        self.sim_rtol = similarity_rtol
-
-        self.tp_diff = tr_pk_diff
-
-        if start_pos == 'fixed' or start_pos == 'variable':
-            self.start_pos = start_pos
-        else:
-            raise ValueError('start_pos must be either "fixed" or "variable".')
-
-        if acc_peak_params is None:
-            self.acc_pk_kw = {}
-        else:
-            self.acc_pk_kw = acc_peak_params
-        if acc_trough_params is None:
-            self.acc_tr_kw = {}
-        else:
-            self.acc_tr_kw = acc_trough_params
-
-    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
-        """
-        Apply the stillness-based STS detection to the given data
-
-        Parameters
-        ----------
-        mag_acc : numpy.ndarray
-            (N, 3) array of filtered acceleration magnitude.
-        mag_acc_r : numpy.ndarray
-            (N, 3) array of reconstructed acceleration magnitude.
-        time : numpy.ndarray
-            (N, ) array of time-stamps (in seconds) corresponding with the acceleration
-        dt : float
-            Sampling time difference
-        power_peaks : numpy.ndarray
-            Locations of the peaks in the CWT power data.
-        cwt_coefs : numpy.ndarray
-            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
-        cwt_freqs : numpy.ndarray
-            (M, ) array of frequencies from the CWT
-
-        Returns
-        -------
-        sts : list
-            List of tuples of the form (STS start, STS end) for the detected STS transitions in the provided data.
-        extra : dict
-            Dictionary of extra returns, mostly used for plotting. Keyword 'plot' can contain an array of indices to
-            be plotted from the acceleration data
-        """
-        # compute the sum of the scales in certain frequency bands
-        low_mask = (cwt_freqs > self.low_f[0]) & (cwt_freqs < self.low_f[1])
-        high_mask = (cwt_freqs > self.high_f[0]) & (cwt_freqs < self.high_f[1])
-
-        # compute the powers in those bands
-        low_pwr = npsum(cwt_coefs[low_mask, :], axis=0)
-        high_pwr = npsum(cwt_coefs[high_mask, :], axis=0)
-
-        # compute the indices where the two power measures are close in value
-        similar = isclose(high_pwr, low_pwr, atol=self.sim_atol, rtol=self.sim_rtol)
-
-        # find troughs and peaks in the filtered signal
-        acc_pks, _ = find_peaks(mag_acc, **self.acc_pk_kw)
-        acc_trs, _ = find_peaks(-mag_acc_r, **self.acc_tr_kw)
-
-        # find the stops in similarity
-        stops = where(diff(similar.astype(int)) == -1)[0]
-        sim_starts = where(diff(similar.astype(int)) == 1)[0]
-
-        # iterate over the detected power peaks and determine STS locations
-        sts = {}
-        for ppk in power_peaks:
-            # find the first trough after the power peak
-            try:
-                next_tr = acc_trs[acc_trs > ppk][0]  # get the next trough
-            except IndexError:
-                continue
-            # find the first peak after the found trough, though ensure that there is enough difference that it is
-            # not just artefact
-            try:
-                next_pk = acc_pks[acc_pks > next_tr][0]
-                if mag_acc[next_pk] - mag_acc[next_tr] < self.tp_diff:
-                    next_pk = acc_pks[acc_pks > next_tr][1]
-            except IndexError:
-                continue
-            # make sure ppk to stop isn't too long
-            if (time[next_pk] - time[ppk]).total_seconds() > 2:
-                continue
-            # find the second previous stop of similarity in the power bands
-            try:
-                prev2_stop = stops[stops < ppk][-2]
-                if self.start_pos == 'variable':
-                    prev_start = sim_starts[sim_starts > prev2_stop][0]
-                    if npabs(mag_acc[prev2_stop] - self.gravity) < npabs(mag_acc[prev_start] - self.gravity):
-                        start = prev2_stop
-                        alt_start = prev_start
-                    else:
-                        start = prev_start
-                        alt_start = None
-                else:
-                    start = prev2_stop
-                    alt_start = None
-            except IndexError:
-                continue
-            # ensure that there is no overlap with previously detected transitions
-            if len(sts) > 0:
-                if (time[start] - sts[list(sts.keys())[-1]][1]).total_seconds() < 0.5:  # min time between transitions
-                    if alt_start is not None:
-                        if (time[alt_start] - sts[list(sts.keys())[-1]][1]) < 0.5:
-                            continue
-                        else:
-                            start = alt_start
-            # sts.append((time[start], time[next_pk]))
-            a_max, a_min = mag_acc_r[start:next_pk].max(), mag_acc_r[start:next_pk].min()
-            sts[f'{time[start]}'] = Transition((time[start], time[next_pk]), max_acceleration=a_max,
-                                               min_acceleration=a_min)
-
-        return sts, {'plot': similar}
-
-
 class Stillness:
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
@@ -689,3 +523,169 @@ class Displacement:
         l1 = Line2D(time[acc_still], mag_acc[acc_still], color='k', marker='.', ls='')
 
         return sts, {'pos lines': pos_lines, 'lines': [l1]}
+
+
+class Similarity:
+    def __init__(self, gravity_value=9.81, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0,
+                 similarity_rtol=0.15, tr_pk_diff=0.5, start_pos='fixed', acc_peak_params=None, acc_trough_params=None):
+        """
+        Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
+        in different power bands
+
+        Parameters
+        ----------
+        gravity_value : float, optional
+            Value of gravitational acceleration of the sensor during still standing or sitting. Default is 9.81m/s^2.
+        low_f_band : {array_like, float, int}, optional
+            Low frequency limits for the low freq. power band, obtained by summing CWT coefficients in this band of
+            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
+            maximum value, with 0 Hz as the minimum. Default is [0, 0.5].
+        high_f_band : {array_like, float, int}, optional
+            High frequency limits for the high freq. power band, obtained by summing CWT coefficients in this band of
+            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
+            maximum value, with 0 Hz as the minimum. Default is [0, 3].
+        similarity_atol : {float, int}, optional
+            Absolute tolerance for determining similarity between the high and low frequency power bands. Default is 0
+        similarity_rtol : {float, int}, optional
+            Relative tolerance for dtermining similarity between the high and low frequency power bands. Default is 0.15
+        tr_pk_diff : float, optional
+            Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
+            time for the STS transitions. Default is 0.5 m/s^2.
+        start_pos : {'fixed', 'variable'}, optional
+            How the start of STS transitions is determined. Either a fixed location, or can be variable among several
+            possible locations, and the best location is chosen. Default is 'fixed'
+        acc_peak_params : {None, dict}, optional
+            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
+            acceleration magnitude. Default is None, for which the find_peaks defaults will be used.
+        acc_trough_params : {None, dict}, optional
+            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding troughs
+            (local minima) in the acceleration magnitude. Default is None, for which the find_peaks defaults will be
+            used.
+        """
+        self.gravity = gravity_value
+
+        if isinstance(low_f_band, (float, int)):
+            self.low_f = [0, low_f_band]
+        else:
+            self.low_f = low_f_band  # TODO add check for length
+        if isinstance(high_f_band, (float, int)):
+            self.high_f = [0, high_f_band]
+        else:
+            self.high_f = high_f_band
+
+        self.sim_atol = similarity_atol
+        self.sim_rtol = similarity_rtol
+
+        self.tp_diff = tr_pk_diff
+
+        if start_pos == 'fixed' or start_pos == 'variable':
+            self.start_pos = start_pos
+        else:
+            raise ValueError('start_pos must be either "fixed" or "variable".')
+
+        if acc_peak_params is None:
+            self.acc_pk_kw = {}
+        else:
+            self.acc_pk_kw = acc_peak_params
+        if acc_trough_params is None:
+            self.acc_tr_kw = {}
+        else:
+            self.acc_tr_kw = acc_trough_params
+
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        """
+        Apply the stillness-based STS detection to the given data
+
+        Parameters
+        ----------
+        mag_acc : numpy.ndarray
+            (N, 3) array of filtered acceleration magnitude.
+        mag_acc_r : numpy.ndarray
+            (N, 3) array of reconstructed acceleration magnitude.
+        time : numpy.ndarray
+            (N, ) array of time-stamps (in seconds) corresponding with the acceleration
+        dt : float
+            Sampling time difference
+        power_peaks : numpy.ndarray
+            Locations of the peaks in the CWT power data.
+        cwt_coefs : numpy.ndarray
+            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
+        cwt_freqs : numpy.ndarray
+            (M, ) array of frequencies from the CWT
+
+        Returns
+        -------
+        sts : list
+            List of tuples of the form (STS start, STS end) for the detected STS transitions in the provided data.
+        extra : dict
+            Dictionary of extra returns, mostly used for plotting. Keyword 'plot' can contain an array of indices to
+            be plotted from the acceleration data
+        """
+        # compute the sum of the scales in certain frequency bands
+        low_mask = (cwt_freqs > self.low_f[0]) & (cwt_freqs < self.low_f[1])
+        high_mask = (cwt_freqs > self.high_f[0]) & (cwt_freqs < self.high_f[1])
+
+        # compute the powers in those bands
+        low_pwr = npsum(cwt_coefs[low_mask, :], axis=0)
+        high_pwr = npsum(cwt_coefs[high_mask, :], axis=0)
+
+        # compute the indices where the two power measures are close in value
+        similar = isclose(high_pwr, low_pwr, atol=self.sim_atol, rtol=self.sim_rtol)
+
+        # find troughs and peaks in the filtered signal
+        acc_pks, _ = find_peaks(mag_acc, **self.acc_pk_kw)
+        acc_trs, _ = find_peaks(-mag_acc_r, **self.acc_tr_kw)
+
+        # find the stops in similarity
+        stops = where(diff(similar.astype(int)) == -1)[0]
+        sim_starts = where(diff(similar.astype(int)) == 1)[0]
+
+        # iterate over the detected power peaks and determine STS locations
+        sts = {}
+        for ppk in power_peaks:
+            # find the first trough after the power peak
+            try:
+                next_tr = acc_trs[acc_trs > ppk][0]  # get the next trough
+            except IndexError:
+                continue
+            # find the first peak after the found trough, though ensure that there is enough difference that it is
+            # not just artefact
+            try:
+                next_pk = acc_pks[acc_pks > next_tr][0]
+                if mag_acc[next_pk] - mag_acc[next_tr] < self.tp_diff:
+                    next_pk = acc_pks[acc_pks > next_tr][1]
+            except IndexError:
+                continue
+            # make sure ppk to stop isn't too long
+            if (time[next_pk] - time[ppk]).total_seconds() > 2:
+                continue
+            # find the second previous stop of similarity in the power bands
+            try:
+                prev2_stop = stops[stops < ppk][-2]
+                if self.start_pos == 'variable':
+                    prev_start = sim_starts[sim_starts > prev2_stop][0]
+                    if npabs(mag_acc[prev2_stop] - self.gravity) < npabs(mag_acc[prev_start] - self.gravity):
+                        start = prev2_stop
+                        alt_start = prev_start
+                    else:
+                        start = prev_start
+                        alt_start = None
+                else:
+                    start = prev2_stop
+                    alt_start = None
+            except IndexError:
+                continue
+            # ensure that there is no overlap with previously detected transitions
+            if len(sts) > 0:
+                if (time[start] - sts[list(sts.keys())[-1]][1]).total_seconds() < 0.5:  # min time between transitions
+                    if alt_start is not None:
+                        if (time[alt_start] - sts[list(sts.keys())[-1]][1]) < 0.5:
+                            continue
+                        else:
+                            start = alt_start
+            # sts.append((time[start], time[next_pk]))
+            a_max, a_min = mag_acc_r[start:next_pk].max(), mag_acc_r[start:next_pk].min()
+            sts[f'{time[start]}'] = Transition((time[start], time[next_pk]), max_acceleration=a_max,
+                                               min_acceleration=a_min)
+
+        return sts, {'plot': similar}
