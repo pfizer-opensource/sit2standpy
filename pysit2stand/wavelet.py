@@ -7,9 +7,6 @@ June 2019
 from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64
 from scipy.signal import find_peaks
 import pywt
-import matplotlib.pyplot as plt
-
-plt.style.use(['ggplot', 'presentation'])
 
 
 class Sit2Stand:
@@ -106,7 +103,7 @@ class Sit2Stand:
             self.pwr_pks, _ = find_peaks(self.power, **self.pk_pwr_par)
 
         # use the detector object to fully detect the sit-to-stand transitions
-        sts, self.ext = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
+        sts = detector.apply(accel, self.macc_f, self.macc_r, time, dt, self.pwr_pks, self.coefs, self.freqs)
 
         return sts
 
