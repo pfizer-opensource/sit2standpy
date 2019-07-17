@@ -12,8 +12,7 @@ from scipy.integrate import cumtrapz
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 from matplotlib.lines import Line2D
 
-from pysit2stand import utility as u_
-from pysit2stand.common import Transition, TransitionQuantifier as TQ
+from pysit2stand.utility import Transition, mov_stats, TransitionQuantifier as TQ
 
 
 __all__ = ['Similarity', 'Stillness', 'Displacement']
@@ -49,11 +48,11 @@ def _get_still(mag_acc_f, dt, window, gravity, thresholds):
     # calculate the sample window from the time window
     n_window = int(around(window / dt))
     # compute the acceleration moving standard deviation
-    am_avg, am_std, _ = u_.mov_stats(mag_acc_f, n_window)
+    am_avg, am_std, _ = mov_stats(mag_acc_f, n_window)
     # compute the jerk
     jerk = gradient(mag_acc_f, dt, edge_order=2)
     # compute the jerk moving average and standard deviation
-    jm_avg, jm_std, _ = u_.mov_stats(jerk, n_window)
+    jm_avg, jm_std, _ = mov_stats(jerk, n_window)
 
     # create masks from the moving statistics of acceleration and jerk
     am_avg_mask = npabs(am_avg - gravity) < thresholds['accel moving avg']

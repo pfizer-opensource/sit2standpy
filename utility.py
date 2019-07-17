@@ -1,12 +1,142 @@
 """
-Misc utility functions for detecting postural transitions
+Common methods for both acceleration only and imu-based postural transition detection
 
 Lukas Adamowicz
 June 2019
 """
-from numpy import zeros, ceil, mean, std, sqrt, array, cross, dot, arccos, cos, sin
+from numpy import around, ndarray, zeros, mean, std, ceil
 from numpy.linalg import norm
 from numpy.lib import stride_tricks
+from scipy.signal import butter, filtfilt
+import pywt
+
+
+class Transition:
+    def __str__(self):
+        return f'Postural Transition'
+
+    def __repr__(self):
+        return f'{self.long_type} (Duration: {self.duration:.2f})'
+
+    def __init__(self, times, t_type='SiSt', v_displacement=None, max_v_velocity=None, min_v_velocity=None,
+                 max_acceleration=None, min_acceleration=None):
+        """
+        Object for storing information about a postural transition
+        """
+        self.times = times
+        if isinstance(times, (tuple, list, ndarray)):
+            self.start_time = times[0]
+            self.end_time = times[1]
+            self.duration = (self.end_time - self.start_time).total_seconds()
+        else:
+            raise ValueError('times must be a tuple or a list-like.')
+
+        self.ttype = t_type
+        if self.ttype == 'SiSt':
+            self.long_type = 'Sit to Stand'
+        elif self.ttype == 'StSi':
+            self.long_type = 'Stand to Sit'
+        else:
+            raise ValueError('Unrecognized transition type (t_type). Must be either "SiSt" or "StSi".')
+
+        self.v_displacement = v_displacement
+        self.max_v_velocity = max_v_velocity
+        self.min_v_velocity = min_v_velocity
+        self.max_acceleration = max_acceleration
+        self.min_acceleration = min_acceleration
+
+
+class AccFilter:
+    def __init__(self, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
+                 window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
+        """
+        Object for filtering and reconstructing raw acceleration data
+
+        Parameters
+        ----------
+        reconstruction_method : {'moving average', 'dwt'}, optional
+            Method for computing the reconstructed acceleration. Default is 'moving average', which takes the moving
+            average over the specified window. Other option is 'dwt', which uses the discrete wavelet transform to
+            deconstruct and reconstruct the signal while filtering noise out.
+        lowpass_order : int, optional
+            Initial low-pass filtering order. Default is 4.
+        lowpass_cutoff : float, optional
+            Initial low-pass filtering cuttoff, in Hz. Default is 5Hz.
+        window : float, optional
+            Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'
+        discrete_wavelet : str, optional
+            Discrete wavelet to use if reconstruction_method is 'dwt'. Default is 'dmey'. See
+            pywt.wavelist(kind='discrete') for a complete list of options. Ignored if reconstruction_method is
+            'moving average'.
+        extension_mode : str, optional
+            Signal extension mode to use in the DWT de- and re-construction of the signal. Default is 'constant', see
+            pywt.Modes.modes for a list of options. Ignored if reconstruction_method is 'moving average'.
+        reconstruction_level : int, optional
+            Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
+            'moving average'
+        """
+        if reconstruction_method == 'moving average' or reconstruction_method == 'dwt':
+            self.method = reconstruction_method
+        else:
+            raise ValueError('reconstruction_method is not recognized. Options are "moving average" or "dwt".')
+
+        self.lp_ord = lowpass_order
+        self.lp_cut = lowpass_cutoff
+
+        self.window = window
+
+        self.dwave = discrete_wavelet
+        self.ext_mode = extension_mode
+        self.recon_level = reconstruction_level
+
+    def apply(self, accel, fs):
+        """
+        Apply the desired filtering to the provided signal.
+
+        Parameters
+        ----------
+        accel : numpy.ndarray
+            (N, 3) array of raw acceleration values.
+        fs : float, optional
+            Sampling frequency for the acceleration data.
+
+        Returns
+        -------
+        mag_acc_f : numpy.ndarray
+            (N, ) array of the filtered (low-pass only) acceleration magnitude.
+        mag_acc_r : numpy.ndarray
+            (N, ) array of the reconstructed acceleration magnitude. This is either filtered and then moving averaged,
+            or filtered, and then passed through the DWT and inverse DWT with more filtering, depending on the
+            reconstruction_method specified.
+        """
+        # compute the acceleration magnitude
+        macc = norm(accel, axis=1)
+
+        # setup the filter, and filter the acceleration magnitude
+        fc = butter(self.lp_ord, 2 * self.lp_cut / fs, btype='low')
+        macc_f = filtfilt(fc[0], fc[1], macc)
+
+        if self.method == 'dwt':
+            # deconstruct the filtered acceleration magnitude
+            coefs = pywt.wavedec(macc_f, self.dwave, mode=self.ext_mode)
+
+            # set all but the desired level of coefficients to be 0s
+            if (len(coefs) - self.recon_level) < 1:
+                print(f'Chosen reconstruction level is too high, setting reconstruction level to {len(coefs) - 1}')
+                ind = 1
+            else:
+                ind = len(coefs) - self.recon_level
+
+            for i in range(1, len(coefs)):
+                if i != ind:
+                    coefs[i][:] = 0
+
+            macc_r = pywt.waverec(coefs, self.dwave, mode=self.ext_mode)
+        elif self.method == 'moving average':
+            n_window = int(around(fs * self.window))  # compute the length in samples of the moving average
+            macc_r, _, _ = mov_stats(macc_f, n_window)  # compute the moving average
+
+        return macc_f, macc_r[:macc_f.size]
 
 
 def mov_stats(seq, window):
@@ -27,9 +157,10 @@ def mov_stats(seq, window):
     pad : int
         Padding at beginning of the moving average and standard deviation
     """
+
     def rolling_window(x, wind):
         shape = x.shape[:-1] + (x.shape[-1] - wind + 1, wind)
-        strides = x.strides + (x.strides[-1], )
+        strides = x.strides + (x.strides[-1],)
         return stride_tricks.as_strided(x, shape=shape, strides=strides)
 
     m_mn = zeros(seq.shape)
@@ -47,113 +178,58 @@ def mov_stats(seq, window):
     m_mn[pad:pad + n] = mean(rw_seq, axis=-1)
     m_st[pad:pad + n] = std(rw_seq, axis=-1, ddof=1)
 
-    m_mn[:pad], m_mn[pad + n:] = m_mn[pad], m_mn[-pad-1]
-    m_st[:pad], m_st[pad + n:] = m_st[pad], m_st[-pad-1]
+    m_mn[:pad], m_mn[pad + n:] = m_mn[pad], m_mn[-pad - 1]
+    m_st[:pad], m_st[pad + n:] = m_st[pad], m_st[-pad - 1]
     return m_mn, m_st, pad
 
 
-def vec2quat(v1, v2):
-    """
-    Find the rotation quaternion between two vectors. Rotate v1 onto v2
-    Parameters
-    ----------
-    v1 : numpy.ndarray
-        Vector 1
-    v2 : numpy.ndarray
-        Vector 2
-    Returns
-    -------
-    q : numpy.ndarray
-        Quaternion representing the rotation from v1 to v2
-    """
-    angle = arccos(dot(v1.flatten(), v2.flatten()) / (norm(v1) * norm(v2)))
+class TransitionQuantifier:
+    def __init__(self):
+        """
+        Quantification of a sit-to-stand transition.
+        """
+        pass
 
-    # Rotation axis is always normal to two vectors
-    axis = cross(v1.flatten(), v2.flatten())
-    axis = axis / norm(axis)  # normalize
+    def quantify(self, times, mag_acc_f=None, mag_acc_r=None, v_vel=None, v_pos=None):
+        """
+        Compute quantitative values from the provided signals
 
-    q = zeros(4)
-    q[0] = cos(angle / 2)
-    q[1:] = axis * sin(angle / 2)
-    q /= norm(q)
+        Parameters
+        ----------
+        times : tuple
+            Tuple of the start and end timestamps for the transition
+        mag_acc_f : {None, numpy.ndarray}, optional
+            Filtered acceleration magnitude during the transition.
+        mag_acc_r : {None, numpy.ndarray}, optional
+            Reconstructed acceleration magnitude during the transition.
+        v_vel : {None, numpy.ndarray}, optional
+            Vertical velocity during the transition.
+        v_pos : {None, numpy.ndarray}, optional
+            Vertical position during the transition.
 
-    return q
+        Returns
+        -------
+        transition : Transition
+            Transition object containing metrics quantifying the transition.
+        """
+        if mag_acc_f is not None:
+            max_acc = mag_acc_f.max()
+            min_acc = mag_acc_f.min()
+        else:
+            max_acc = None
+            min_acc = None
+        if v_vel is not None:
+            max_v_vel = v_vel.max()
+            min_v_vel = v_vel.min()
+        else:
+            max_v_vel = None
+            min_v_vel = None
+        if v_pos is not None:
+            v_disp = v_pos[-1] - v_pos[0]
+        else:
+            v_disp = None
 
+        self.transition_ = Transition(times=times, v_displacement=v_disp, max_v_velocity=max_v_vel,
+                                      min_v_velocity=min_v_vel, max_acceleration=max_acc, min_acceleration=min_acc)
 
-def quat2matrix(q):
-    """
-    Transform quaternion to rotation matrix
-    Parameters
-    ----------
-    q : numpy.ndarray
-        Quaternion
-    Returns
-    -------
-    R : numpy.ndarray
-        Rotation matrix
-    """
-    if q.ndim == 1:
-        s = norm(q)
-        R = array([[1 - 2 * s * (q[2] ** 2 + q[3] ** 2), 2 * s * (q[1] * q[2] - q[3] * q[0]),
-                    2 * s * (q[1] * q[3] + q[2] * q[0])],
-                   [2 * s * (q[1] * q[2] + q[3] * q[0]), 1 - 2 * s * (q[1] ** 2 + q[3] ** 2),
-                    2 * s * (q[2] * q[3] - q[1] * q[0])],
-                   [2 * s * (q[1] * q[3] - q[2] * q[0]), 2 * s * (q[2] * q[3] + q[1] * q[0]),
-                    1 - 2 * s * (q[1] ** 2 + q[2] ** 2)]])
-    elif q.ndim == 2:
-        s = norm(q, axis=1)
-        R = array([[1 - 2 * s * (q[:, 2]**2 + q[:, 3]**2), 2 * s * (q[:, 1] * q[:, 2] - q[:, 3] * q[:, 0]),
-                    2 * s * (q[:, 1] * q[:, 3] + q[:, 2] * q[:, 0])],
-                   [2 * s * (q[:, 1] * q[:, 2] + q[:, 3] * q[:, 0]), 1 - 2 * s * (q[:, 1]**2 + q[:, 3]**2),
-                    2 * s * (q[:, 2] * q[:, 3] - q[:, 1] * q[:, 0])],
-                   [2 * s * (q[:, 1] * q[:, 3] - q[:, 2] * q[:, 0]), 2 * s * (q[:, 2] * q[:, 3] + q[:, 1] * q[:, 0]),
-                    1 - 2 * s * (q[:, 1]**2 + q[:, 2]**2)]])
-        R = R.transpose([2, 0, 1])
-    return R
-
-
-# ------------------------------------------------
-#     QUATERNION METHODS
-# ------------------------------------------------
-def quat_mult(q1, q2):
-    """
-    Multiply quaternions
-    Parameters
-    ----------
-    q1 : numpy.ndarray
-        1x4 array representing a quaternion
-    q2 : numpy.ndarray
-        1x4 array representing a quaternion
-    Returns
-    -------
-    q : numpy.ndarray
-        1x4 quaternion product of q1*q2
-    """
-    if q1.shape != (1, 4) and q1.shape != (4, 1) and q1.shape != (4,):
-        raise ValueError('Quaternions contain 4 dimensions, q1 has more or less than 4 elements')
-    if q2.shape != (1, 4) and q2.shape != (4, 1) and q2.shape != (4,):
-        raise ValueError('Quaternions contain 4 dimensions, q2 has more or less than 4 elements')
-    if q1.shape == (4, 1):
-        q1 = q1.T
-
-    Q = array([[q2[0], q2[1], q2[2], q2[3]],
-               [-q2[1], q2[0], -q2[3], q2[2]],
-               [-q2[2], q2[3], q2[0], -q2[1]],
-               [-q2[3], -q2[2], q2[1], q2[0]]])
-
-    return q1 @ Q
-
-
-def quat_conj(q):
-    """
-    Compute the conjugate of a quaternion
-    Parameters
-    ----------
-    q : numpy.ndarray
-        Nx4 array of N quaternions to compute the conjugate of.
-    Returns
-    -------
-    q_conj : numpy.ndarray
-        Nx4 array of N quaternion conjugats of q.
-    """
-    return q * array([1, -1, -1, -1])
+        return self.transition_
