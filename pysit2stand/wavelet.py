@@ -64,9 +64,9 @@ class Sit2Stand:
             (N, 3) array of raw accelerations measured by a lumbar sensor.
         time : pandas.DatetimeIndex
             (N, ) array of pandas.DatetimeIndex corresponding with the acceleration data.
-        detector: {pysit2stand.acc.StillnessDetector, pysit2stand.acc.SimilarityDetector}
+        detector: {pysit2stand.detector}
             Initialized detector objects for detecting the sit-to-stand transisions. Must have an apply method. If
-            creating a new object for this detection, see StillnessDetector.apply() for the required arguments.
+            creating a new object for this detection, see pysit2stand.detector.Displacement for the required arguments.
         acc_filter : pysit2stand.AccFilter
             Acceleration filter object, used to filter and reconstruct the magnitude of the acceleration. Must have
             an apply() method (eg acc_filter.apply()) that takes the raw acceleration, and sampling frequency only
