@@ -65,7 +65,7 @@ class Sit2Stand:
             (N, 3) array of raw accelerations measured by a lumbar sensor.
         time : pandas.DatetimeIndex
             (N, ) array of pandas.DatetimeIndex corresponding with the acceleration data.
-        detector : pysit2stand.detector
+        detector : pysit2stand.detectors
             Initialized detector objects for detecting the sit-to-stand transisions. Must have an apply method. If
             creating a new object for this detection, see pysit2stand.detector.Displacement for the required arguments.
         acc_filter : pysit2stand.AccFilter
