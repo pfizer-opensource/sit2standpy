@@ -149,9 +149,9 @@ class Stillness:
         which specifies a maximum value of 9.5m/s^2 for local minima. See `scipy.signal.find_peaks` for the
         possible arguments.
     trans_quant : TransitionQuantifier
-        TransitionQuantifier object, which contains a *quantify* method, which accepts the following arguments:
-        times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
-        pysit2stand.common.TransitionQuantifier
+        TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
+        `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
+        `pysit2stand.common.TransitionQuantifier`.
 
     Notes
     -----
@@ -378,9 +378,9 @@ class Displacement:
         which specifies a maximum value of 9.5m/s^2 for local minima. See `scipy.signal.find_peaks` for the
         possible arguments.
     trans_quant : TransitionQuantifier
-        TransitionQuantifier object, which contains a *quantify* method, which accepts the following arguments:
-        times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
-        pysit2stand.common.TransitionQuantifier
+        TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
+        `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
+        `pysit2stand.common.TransitionQuantifier`.
 
     Notes
     -----
