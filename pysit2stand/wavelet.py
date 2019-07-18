@@ -10,26 +10,27 @@ import pywt
 
 
 class Sit2Stand:
-    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
-        """
-        Wavelet based detection of sit-to-stand transitions
+    """
+    Wavelet based detection of sit-to-stand transitions
 
-        Parameters
-        ----------
-        continuous_wavelet : str, optional
-            Continuous wavelet to use for signal deconstruction. Default is 'gaus1'. CWT coefficients will be summed
-            in frequency bands that will be used for detecting approximate STS locations.
-        peak_pwr_band : {array_like, int, float}, optional
-            Frequency band in which to sum the CWT coefficients. Either an array_like of length 2, with the lower and
-            upper limits, or a number, which will be taken as the upper limit, and the lower limit will be set to 0.
-            Default is [0, 0.5].
-        peak_pwr_par : {None, dict}, optional
-            Extra parameters (key-word arguments) to pass to scipy.signal.find_peaks when finding peaks in the
-            summed CWT coefficient power band data. Default is None, which will use the default parameters, unless
-            std_height is True.
-        std_height : bool, optional
-            Use the standard deviation of the power for peak finding. Default is True.
-        """
+    Parameters
+    ----------
+    continuous_wavelet : str, optional
+        Continuous wavelet to use for signal deconstruction. Default is 'gaus1'. CWT coefficients will be summed
+        in frequency bands that will be used for detecting approximate STS locations.
+    peak_pwr_band : {array_like, int, float}, optional
+        Frequency band in which to sum the CWT coefficients. Either an array_like of length 2, with the lower and
+        upper limits, or a number, which will be taken as the upper limit, and the lower limit will be set to 0.
+        Default is [0, 0.5].
+    peak_pwr_par : {None, dict}, optional
+        Extra parameters (key-word arguments) to pass to scipy.signal.find_peaks when finding peaks in the
+        summed CWT coefficient power band data. Default is None, which will use the default parameters, unless
+        std_height is True.
+    std_height : bool, optional
+        Use the standard deviation of the power for peak finding. Default is True.
+    """
+
+    def __init__(self, continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
         self.cwave = continuous_wavelet  # TODO add checks this is a valid wavelet
 
         if isinstance(peak_pwr_band, (int, float)):
@@ -64,7 +65,7 @@ class Sit2Stand:
             (N, 3) array of raw accelerations measured by a lumbar sensor.
         time : pandas.DatetimeIndex
             (N, ) array of pandas.DatetimeIndex corresponding with the acceleration data.
-        detector: {pysit2stand.detector}
+        detector : pysit2stand.detector
             Initialized detector objects for detecting the sit-to-stand transisions. Must have an apply method. If
             creating a new object for this detection, see pysit2stand.detector.Displacement for the required arguments.
         acc_filter : pysit2stand.AccFilter

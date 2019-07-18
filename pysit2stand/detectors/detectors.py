@@ -114,60 +114,61 @@ def _integrate_acc(acc, dt, still_at_end):
 
 
 class Stillness:
+    """
+    Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
+    vertical displacement of a lumbar accelerometer for ensuring a transition.
+
+    Parameters
+    ----------
+    gravity : float, optional
+        Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
+    thresholds : {None, dict}, optional
+        Either None, for the default, or a dictionary of thresholds to change. See Notes. Default
+        is None, which uses the default values.
+    gravity_pass_ord : int, optional
+        Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
+        data. Default is 4.
+    gravity_pass_cut : float, optional
+        Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
+    long_still : float, optional
+        Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
+        integration limits when available. Default is 0.5s.
+    moving_window : float, optional
+        Length of the moving window for calculating the moving statistics for determining stillness.
+        Default is 0.3s.
+    duration_factor : float, optional
+        The factor for the maximum difference between the duration before and after the generalized location of
+        the sit to stand. Lower factors result in more equal time before and after the detection. Default
+        is 3.
+    displacement_factor : float, optional
+        Factor multiplied by the median of the vertical displacements to determine the threshold for checking if a
+        transition is a partial transition or a full transition. Default is 0.75
+    lmax_kwargs : {None, dict}, optional
+        Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
+        for no specified arguments. See scipy.signal.find_peaks for possible arguments.
+    lmin_kwargs : {None, dict}, optional
+        Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
+        which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
+        possible arguments.
+    trans_quant : TransitionQuantifier
+        TransitionQuantifier object, which contains a 'quantify' method, which accepts the following arguments:
+        times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
+        pysit2stand.common.TransitionQuantifier
+
+    Notes
+    -----
+    Default thresholds:
+        stand displacement: 0.125
+        transition velocity: 0.2
+        accel moving avg: 0.2
+        accel moving std: 0.1
+        jerk moving avg: 2.5
+        jerk moving std: 3
+    """
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None, trans_quant=TQ()):
-        """
-        Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
-        vertical displacement of a lumbar accelerometer for ensuring a transition.
 
-        Parameters
-        ----------
-        gravity : float, optional
-            Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
-        thresholds : {None, dict}, optional
-            Either None, for the default, or a dictionary of thresholds to change. See Notes. Default
-            is None, which uses the default values.
-        gravity_pass_ord : int, optional
-            Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
-            data. Default is 4.
-        gravity_pass_cut : float, optional
-            Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
-        long_still : float, optional
-            Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
-            integration limits when available. Default is 0.5s.
-        moving_window : float, optional
-            Length of the moving window for calculating the moving statistics for determining stillness.
-            Default is 0.3s.
-        duration_factor : float, optional
-            The factor for the maximum difference between the duration before and after the generalized location of
-            the sit to stand. Lower factors result in more equal time before and after the detection. Default
-            is 3.
-        displacement_factor : float, optional
-            Factor multiplied by the median of the vertical displacements to determine the threshold for checking if a
-            transition is a partial transition or a full transition. Default is 0.75
-        lmax_kwargs : {None, dict}, optional
-            Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
-            for no specified arguments. See scipy.signal.find_peaks for possible arguments.
-        lmin_kwargs : {None, dict}, optional
-            Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
-            which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
-            possible arguments.
-        trans_quant : TransitionQuantifier
-            TransitionQuantifier object, which contains a 'quantify' method, which accepts the following arguments:
-            times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
-            pysit2stand.common.TransitionQuantifier
-
-        Notes
-        -----
-        Default thresholds:
-            stand displacement: 0.125
-            transition velocity: 0.2
-            accel moving avg: 0.2
-            accel moving std: 0.1
-            jerk moving avg: 2.5
-            jerk moving std: 3
-        """
         # set the default thresholds
         self.default_thresholds = {'stand displacement': 0.125,
                                    'transition velocity': 0.2,
@@ -205,6 +206,34 @@ class Stillness:
         self.tq = trans_quant
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        """
+        Apply the stillness-based STS detection to the given data
+
+        Parameters
+        ----------
+        raw_acc : numpy.ndarray
+            (N, 3) array of the raw acceleration signal
+        mag_acc : numpy.ndarray
+            (N, ) array of filtered acceleration magnitude.
+        mag_acc_r : numpy.ndarray
+            (N, ) array of reconstructed acceleration magnitude.
+        time : numpy.ndarray
+            (N, ) array of time-stamps (in seconds) corresponding with the acceleration
+        dt : float
+            Sampling time difference
+        power_peaks : numpy.ndarray
+            Locations of the peaks in the CWT power data.
+        cwt_coefs : numpy.ndarray
+            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
+        cwt_freqs : numpy.ndarray
+            (M, ) array of frequencies from the CWT
+
+        Returns
+        -------
+        sts : dict
+            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            transition. Keys for the dictionary are string timestamps of the start of the transition.
+        """
         # find stillness
         acc_still, still_starts, still_stops = _get_still(mag_acc, dt, self.mov_window, self.grav, self.thresh)
         # starts and stops of long still periods
@@ -314,60 +343,62 @@ class Stillness:
 
 
 class Displacement:
+    """
+    Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
+    vertical displacement of a lumbar accelerometer for ensuring a transition.
+
+    Parameters
+    ----------
+    gravity : float, optional
+        Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
+    thresholds : {None, dict}, optional
+        Either None, for the default, or a dictionary of thresholds to change. See Notes. Default
+        is None, which uses the default values.
+    gravity_pass_ord : int, optional
+        Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
+        data. Default is 4.
+    gravity_pass_cut : float, optional
+        Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
+    long_still : float, optional
+        Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
+        integration limits when available. Default is 0.5s.
+    moving_window : float, optional
+        Length of the moving window for calculating the moving statistics for determining stillness.
+        Default is 0.3s.
+    duration_factor : float, optional
+        The factor for the maximum difference between the duration before and after the generalized location of
+        the sit to stand. Lower factors result in more equal time before and after the detection. Default
+        is 3.
+    displacement_factor : float, optional
+        Factor multiplied by the median of the vertical displacements to determine the threshold for checking if a
+        transition is a partial transition or a full transition. Default is 0.75
+    lmax_kwargs : {None, dict}, optional
+        Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
+        for no specified arguments. See scipy.signal.find_peaks for possible arguments.
+    lmin_kwargs : {None, dict}, optional
+        Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
+        which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
+        possible arguments.
+    trans_quant : TransitionQuantifier
+        TransitionQuantifier object, which contains a 'quantify' method, which accepts the following arguments:
+        times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
+        pysit2stand.common.TransitionQuantifier
+
+    Notes
+    -----
+    Default thresholds:
+        stand displacement: 0.125
+        transition velocity: 0.2
+        accel moving avg: 0.2
+        accel moving std: 0.1
+        jerk moving avg: 2.5
+        jerk moving std: 3
+    """
+
     def __init__(self, gravity=9.81, thresholds=None, gravity_pass_ord=4, gravity_pass_cut=0.8, long_still=0.5,
                  moving_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
                  lmin_kwargs=None, trans_quant=TQ()):
-        """
-        Method for detecting sit-to-stand transitions based on requiring stillness before a transition, and the
-        vertical displacement of a lumbar accelerometer for ensuring a transition.
 
-        Parameters
-        ----------
-        gravity : float, optional
-            Value of gravitational acceleration measured by the accelerometer when still. Default is 9.81 m/s^2.
-        thresholds : {None, dict}, optional
-            Either None, for the default, or a dictionary of thresholds to change. See Notes. Default
-            is None, which uses the default values.
-        gravity_pass_ord : int, optional
-            Low-pass filter order for estimating the direction of gravity by low-pass filtering the raw acceleration
-            data. Default is 4.
-        gravity_pass_cut : float, optional
-            Low-pass filter frequency cutoff for estimating thd direction of gravity. Default is 0.8Hz.
-        long_still : float, optional
-            Length of time of stillness for it to be qualified as a long period of stillness. Used to determing
-            integration limits when available. Default is 0.5s.
-        moving_window : float, optional
-            Length of the moving window for calculating the moving statistics for determining stillness.
-            Default is 0.3s.
-        duration_factor : float, optional
-            The factor for the maximum difference between the duration before and after the generalized location of
-            the sit to stand. Lower factors result in more equal time before and after the detection. Default
-            is 3.
-        displacement_factor : float, optional
-            Factor multiplied by the median of the vertical displacements to determine the threshold for checking if a
-            transition is a partial transition or a full transition. Default is 0.75
-        lmax_kwargs : {None, dict}, optional
-            Additional key-word arguments for finding local maxima in the acceleration signal. Default is None,
-            for no specified arguments. See scipy.signal.find_peaks for possible arguments.
-        lmin_kwargs : {None, dict}, optional
-            Additional key-word arguments for finding local minima in the acceleration signal. Default is None,
-            which specifies a maximum value of 9.5m/s^2 for local minima. See scipy.signal.find_peaks for the
-            possible arguments.
-        trans_quant : TransitionQuantifier
-            TransitionQuantifier object, which contains a 'quantify' method, which accepts the following arguments:
-            times, mag_acc_f, mag_acc_r, v_vel, v_pos. Only times is required. See
-            pysit2stand.common.TransitionQuantifier
-
-        Notes
-        -----
-        Default thresholds:
-            stand displacement: 0.125
-            transition velocity: 0.2
-            accel moving avg: 0.2
-            accel moving std: 0.1
-            jerk moving avg: 2.5
-            jerk moving std: 3
-        """
         # set the default thresholds
         self.default_thresholds = {'stand displacement': 0.125,
                                    'transition velocity': 0.2,
@@ -405,6 +436,34 @@ class Displacement:
         self.tq = trans_quant
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+        """
+        Apply the displacement-based STS detection to the given data
+
+        Parameters
+        ----------
+        raw_acc : numpy.ndarray
+            (N, 3) array of the raw acceleration signal
+        mag_acc : numpy.ndarray
+            (N, ) array of filtered acceleration magnitude.
+        mag_acc_r : numpy.ndarray
+            (N, ) array of reconstructed acceleration magnitude.
+        time : numpy.ndarray
+            (N, ) array of time-stamps (in seconds) corresponding with the acceleration
+        dt : float
+            Sampling time difference
+        power_peaks : numpy.ndarray
+            Locations of the peaks in the CWT power data.
+        cwt_coefs : numpy.ndarray
+            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
+        cwt_freqs : numpy.ndarray
+            (M, ) array of frequencies from the CWT
+
+        Returns
+        -------
+        sts : dict
+            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            transition. Keys for the dictionary are string timestamps of the start of the transition.
+        """
         # find stillness
         acc_still, still_starts, still_stops = _get_still(mag_acc, dt, self.mov_window, self.grav, self.thresh)
         # starts and stops of long still periods
@@ -513,42 +572,44 @@ class Displacement:
 
 
 class Similarity:
+    """
+    Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
+    in different power bands
+
+    Parameters
+    ----------
+    gravity_value : float, optional
+        Value of gravitational acceleration of the sensor during still standing or sitting. Default is 9.81m/s^2.
+    low_f_band : {array_like, float, int}, optional
+        Low frequency limits for the low freq. power band, obtained by summing CWT coefficients in this band of
+        frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
+        maximum value, with 0 Hz as the minimum. Default is [0, 0.5].
+    high_f_band : {array_like, float, int}, optional
+        High frequency limits for the high freq. power band, obtained by summing CWT coefficients in this band of
+        frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
+        maximum value, with 0 Hz as the minimum. Default is [0, 3].
+    similarity_atol : {float, int}, optional
+        Absolute tolerance for determining similarity between the high and low frequency power bands. Default is 0
+    similarity_rtol : {float, int}, optional
+        Relative tolerance for dtermining similarity between the high and low frequency power bands. Default is 0.15
+    tr_pk_diff : float, optional
+        Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
+        time for the STS transitions. Default is 0.5 m/s^2.
+    start_pos : {'fixed', 'variable'}, optional
+        How the start of STS transitions is determined. Either a fixed location, or can be variable among several
+        possible locations, and the best location is chosen. Default is 'fixed'
+    acc_peak_params : {None, dict}, optional
+        Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
+        acceleration magnitude. Default is None, for which the find_peaks defaults will be used.
+    acc_trough_params : {None, dict}, optional
+        Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding troughs
+        (local minima) in the acceleration magnitude. Default is None, for which the find_peaks defaults will be
+        used.
+    """
+
     def __init__(self, gravity_value=9.81, low_f_band=[0, 0.5], high_f_band=[0, 3], similarity_atol=0,
                  similarity_rtol=0.15, tr_pk_diff=0.5, start_pos='fixed', acc_peak_params=None, acc_trough_params=None):
-        """
-        Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
-        in different power bands
 
-        Parameters
-        ----------
-        gravity_value : float, optional
-            Value of gravitational acceleration of the sensor during still standing or sitting. Default is 9.81m/s^2.
-        low_f_band : {array_like, float, int}, optional
-            Low frequency limits for the low freq. power band, obtained by summing CWT coefficients in this band of
-            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
-            maximum value, with 0 Hz as the minimum. Default is [0, 0.5].
-        high_f_band : {array_like, float, int}, optional
-            High frequency limits for the high freq. power band, obtained by summing CWT coefficients in this band of
-            frequencies. Can either be a length 2 array_like (min, max), or a number, which will be interpreted as the
-            maximum value, with 0 Hz as the minimum. Default is [0, 3].
-        similarity_atol : {float, int}, optional
-            Absolute tolerance for determining similarity between the high and low frequency power bands. Default is 0
-        similarity_rtol : {float, int}, optional
-            Relative tolerance for dtermining similarity between the high and low frequency power bands. Default is 0.15
-        tr_pk_diff : float, optional
-            Minimum difference in acceleration magnitude between troughs and peaks that is used in determining the end
-            time for the STS transitions. Default is 0.5 m/s^2.
-        start_pos : {'fixed', 'variable'}, optional
-            How the start of STS transitions is determined. Either a fixed location, or can be variable among several
-            possible locations, and the best location is chosen. Default is 'fixed'
-        acc_peak_params : {None, dict}, optional
-            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding peaks in the
-            acceleration magnitude. Default is None, for which the find_peaks defaults will be used.
-        acc_trough_params : {None, dict}, optional
-            Additional parameters (key-word arguments) to be passed to scipy.signal.find_peaks for finding troughs
-            (local minima) in the acceleration magnitude. Default is None, for which the find_peaks defaults will be
-            used.
-        """
         self.gravity = gravity_value
 
         if isinstance(low_f_band, (float, int)):
@@ -581,14 +642,16 @@ class Similarity:
 
     def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
         """
-        Apply the stillness-based STS detection to the given data
+        Apply the similarity-based STS detection to the given data
 
         Parameters
         ----------
+        raw_acc : numpy.ndarray
+            (N, 3) array of the raw acceleration signal
         mag_acc : numpy.ndarray
-            (N, 3) array of filtered acceleration magnitude.
+            (N, ) array of filtered acceleration magnitude.
         mag_acc_r : numpy.ndarray
-            (N, 3) array of reconstructed acceleration magnitude.
+            (N, ) array of reconstructed acceleration magnitude.
         time : numpy.ndarray
             (N, ) array of time-stamps (in seconds) corresponding with the acceleration
         dt : float
@@ -602,11 +665,9 @@ class Similarity:
 
         Returns
         -------
-        sts : list
-            List of tuples of the form (STS start, STS end) for the detected STS transitions in the provided data.
-        extra : dict
-            Dictionary of extra returns, mostly used for plotting. Keyword 'plot' can contain an array of indices to
-            be plotted from the acceleration data
+        sts : dict
+            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            transition. Keys for the dictionary are string timestamps of the start of the transition.
         """
         # compute the sum of the scales in certain frequency bands
         low_mask = (cwt_freqs > self.low_f[0]) & (cwt_freqs < self.low_f[1])
@@ -675,4 +736,4 @@ class Similarity:
             sts[f'{time[start]}'] = Transition((time[start], time[next_pk]), max_acceleration=a_max,
                                                min_acceleration=a_min)
 
-        return sts, {'plot': similar}
+        return sts

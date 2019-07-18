@@ -9,10 +9,10 @@ from pysit2stand.utility import Transition
 
 
 class TransitionQuantifier:
+    """
+    Quantification of a sit-to-stand transition.
+    """
     def __init__(self):
-        """
-        Quantification of a sit-to-stand transition.
-        """
         pass
 
     def quantify(self, times, mag_acc_f=None, mag_acc_r=None, v_vel=None, v_pos=None):
