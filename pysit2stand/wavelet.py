@@ -76,8 +76,9 @@ class Sit2Stand:
 
         Returns
         -------
-        sts : list
-            List of tuples of (STS start, STS end) for all of the detected STS transitions in the acceleration data.
+        sts : dict
+            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            transition. Keys for the dictionary are string timestamps of the start of the transition.
         """
         # calculate the sampling time and frequency
         if fs is None:
