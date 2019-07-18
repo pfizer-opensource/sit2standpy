@@ -184,13 +184,15 @@ class AccFilter:
 
 def mov_stats(seq, window):
     """
-    Compute the centered moving average and standard deviation
+    Compute the centered moving average and standard deviation.
+
     Parameters
     ----------
     seq : numpy.ndarray
         Data to take the moving average and standard deviation on.
     window : int
         Window size for the moving average/standard deviation.
+
     Returns
     -------
     m_mn : numpy.ndarray
