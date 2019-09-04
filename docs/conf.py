@@ -26,7 +26,7 @@ author = 'Lukas Adamowicz'
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '2019.07'
+release = '2019.09'
 
 
 # -- General configuration ---------------------------------------------------

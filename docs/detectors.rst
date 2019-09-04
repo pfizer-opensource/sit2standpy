@@ -8,6 +8,3 @@ pysit2stand.detectors
 
 .. autoclass:: pysit2stand.detectors.Stillness
    :members:
-
-.. autoclass:: pysit2stand.detectors.Similarity
-   :members:

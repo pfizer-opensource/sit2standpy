@@ -15,7 +15,7 @@ from pysit2stand.utility import Transition, mov_stats
 from pysit2stand.quantify import TransitionQuantifier as TQ
 
 
-__all__ = ['Similarity', 'Stillness', 'Displacement']
+__all__ = ['Stillness', 'Displacement']
 
 
 # some common methods
@@ -151,7 +151,7 @@ class Stillness:
     trans_quant : TransitionQuantifier
         TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
         `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
-        `pysit2stand.common.TransitionQuantifier`.
+        `pysit2stand.TransitionQuantifier`.
 
     Notes
     -----
@@ -380,7 +380,7 @@ class Displacement:
     trans_quant : TransitionQuantifier
         TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
         `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
-        `pysit2stand.common.TransitionQuantifier`.
+        `pysit2stand.TransitionQuantifier`.
 
     Notes
     -----
@@ -569,7 +569,7 @@ class Displacement:
         return sts
 
 
-class Similarity:
+class __Similarity:
     """
     Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
     in different power bands
