@@ -18,7 +18,7 @@ class Transition:
     Parameters
     ----------
     times : array_like
-        array_like of start and end timestamps (pands.Timestamp), [start_time, end_time]. Duration will be
+        array_like of start and end timestamps (pandas.Timestamp), [start_time, end_time]. Duration will be
         calculated as the difference.
     t_type : {'SiSt', 'StSi'}, optional
         Transition type, either 'SiSt' for sit-to-stand, or 'StSi' for stand-to-sit. Default is 'SiSt'.
