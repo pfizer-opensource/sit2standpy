@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pysit2stand",
-    version="2019.07",
+    version="2019.09",
     author="Lukas Adamowicz",
     author_email="lukas.adamowicz@pfizer.com",
     description="Sit-to-stand detection using a single lumbar-mounted accelerometer.",
