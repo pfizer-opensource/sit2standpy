@@ -42,7 +42,7 @@ class TransitionQuantifier:
         """
         if raw_acc is not None:
             acc = norm(raw_acc, axis=1)
-            sparc = TransitionQuantifier.sparc(acc, fs)
+            sparc, _, _ = TransitionQuantifier.sparc(acc, fs)
         else:
             sparc = None
         if mag_acc_f is not None:
