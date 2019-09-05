@@ -321,12 +321,14 @@ class Stillness:
             # sts assignment
             if len(sts) > 0:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap
-                    sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                    sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]), 1 / dt,
+                                                                 raw_acc[sts_start:sts_end],
                                                                  mag_acc[sts_start:sts_end],
                                                                  mag_acc_r[sts_start:sts_end],
                                                                  v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])
             else:
-                sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]), 1 / dt,
+                                                             raw_acc[sts_start:sts_end],
                                                              mag_acc[sts_start:sts_end],
                                                              mag_acc_r[sts_start:sts_end],
                                                              v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])
@@ -550,12 +552,14 @@ class Displacement:
             # sts assignment
             if len(sts) > 0:
                 if (time[sts_start] - sts[list(sts.keys())[-1]].end_time).total_seconds() > 0.4:  # no overlap
-                    sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                    sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]), 1 / dt,
+                                                                 raw_acc[sts_start:sts_end],
                                                                  mag_acc[sts_start:sts_end],
                                                                  mag_acc_r[sts_start:sts_end],
                                                                  v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])
             else:
-                sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]),
+                sts[f'{time[sts_start]}'] = self.tq.quantify((time[sts_start], time[sts_end]), 1 / dt,
+                                                             raw_acc[sts_start:sts_end],
                                                              mag_acc[sts_start:sts_end],
                                                              mag_acc_r[sts_start:sts_end],
                                                              v_vel[t_start_i:t_end_i], v_pos[t_start_i:t_end_i])

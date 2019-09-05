@@ -6,6 +6,7 @@ July 2019
 Pfizer
 """
 from numpy import ceil, log2, arange, abs, sum, sqrt, diff
+from numpy.linalg import norm
 from scipy.fftpack import fft
 from pysit2stand.utility import Transition
 
@@ -17,7 +18,7 @@ class TransitionQuantifier:
     def __init__(self):
         pass
 
-    def quantify(self, times, mag_acc_f=None, mag_acc_r=None, v_vel=None, v_pos=None):
+    def quantify(self, times, fs, raw_acc=None, mag_acc_f=None, mag_acc_r=None, v_vel=None, v_pos=None):
         """
         Compute quantitative values from the provided signals
 
@@ -39,6 +40,11 @@ class TransitionQuantifier:
         transition : Transition
             Transition object containing metrics quantifying the transition.
         """
+        if raw_acc is not None:
+            acc = norm(raw_acc, axis=1)
+            sparc = TransitionQuantifier.sparc(acc, fs)
+        else:
+            sparc = None
         if mag_acc_f is not None:
             max_acc = mag_acc_f.max()
             min_acc = mag_acc_f.min()
@@ -57,7 +63,8 @@ class TransitionQuantifier:
             v_disp = None
 
         self.transition_ = Transition(times=times, v_displacement=v_disp, max_v_velocity=max_v_vel,
-                                      min_v_velocity=min_v_vel, max_acceleration=max_acc, min_acceleration=min_acc)
+                                      min_v_velocity=min_v_vel, max_acceleration=max_acc, min_acceleration=min_acc,
+                                      sparc=sparc)
 
         return self.transition_
 

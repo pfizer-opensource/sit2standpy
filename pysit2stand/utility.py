@@ -32,6 +32,8 @@ class Transition:
         Maximum acceleration during the transition, or None. Default is None.
     min_acceleration : {float, None}, optional
         Minimum acceleration during the transition, or None. Default is None.
+    sparc : {float, None}, optional
+        SPectral ARC length parameter, measuring the smoothness of the transition, or None. Default is None.
 
     Attributes
     ----------
@@ -57,6 +59,8 @@ class Transition:
         Maximum acceleration.
     min_acceleration : {float, None}
         Minimum acceleration.
+    sparc : {float, None}
+        SPectral ARC length measure of smoothness.
     """
     def __str__(self):
         return f'Postural Transition'
@@ -65,7 +69,7 @@ class Transition:
         return f'{self.long_type} (Duration: {self.duration:.2f})'
 
     def __init__(self, times, t_type='SiSt', v_displacement=None, max_v_velocity=None, min_v_velocity=None,
-                 max_acceleration=None, min_acceleration=None):
+                 max_acceleration=None, min_acceleration=None, sparc=None):
         self.times = times
         if isinstance(times, (tuple, list, ndarray)):
             self.start_time = times[0]
@@ -87,6 +91,7 @@ class Transition:
         self.min_v_velocity = min_v_velocity
         self.max_acceleration = max_acceleration
         self.min_acceleration = min_acceleration
+        self.sparc = sparc
 
 
 class AccFilter:
