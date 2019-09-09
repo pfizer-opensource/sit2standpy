@@ -19,7 +19,7 @@ date: 4 September, 2019
 bibliography: paper.bib
 ---
 
-# Summary
+# Background
 
 Digital medicine is driven by novel algorithms that extract digital biomarkers. Longitudinal monitoring would 
 additionally not be possible without the use of wearable sensors, which provide raw inertial data that must be 
@@ -31,7 +31,9 @@ monitoring.
 ``PySit2Stand`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions 
 from lumbar-mounted accelerometer data, and then provide quantitative metrics assessing the performance of the 
 transitions. A modular framework is employed that would allow for easy modification of parts of the algorithm to suit 
-other specific requirements, while still keeping core elements of the algorithm intact. 
+other specific requirements, while still keeping core elements of the algorithm intact. As gyroscopes impose a 
+significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
+only one sensor to collect days worth of analyzable data.
 
 # Mathematics
 
