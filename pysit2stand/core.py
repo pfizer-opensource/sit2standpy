@@ -4,13 +4,15 @@ Wavelet based methods of detecting postural transitions
 Lukas Adamowicz
 June 2019
 """
-from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64, where, insert, append
+from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64, where, insert, append, array_split, \
+    concatenate
 from scipy.signal import find_peaks
 from pandas import to_datetime
 import pywt
 from multiprocessing import cpu_count, Pool
 
-from pysit2stand import AccFilter, detectors
+from pysit2stand.utility import AccFilter
+from pysit2stand import detectors
 
 
 class AutoSit2Stand:
@@ -34,6 +36,9 @@ class AutoSit2Stand:
         the day, ex ('00:00', '24:00') is the whole day. Default is ('08:00', '20:00').
     parallel : bool, optional
         Use parallel processing. Ignored if `window` is False. Default is False.
+    parallel_cpu : {'max', int}, optional
+        Number of CPUs to use for parallel processing. Ignored if parallel is False. 'max' uses the maximum number
+        of CPUs available on the machine, or provide a number less than the maximum to use. Default is 'max'.
 
     Attributes
     ----------
@@ -42,21 +47,44 @@ class AutoSit2Stand:
     days : list
         List of tuples of the indices corresponding to the different days as determined by hours and if data has been
         windowed
-    abs_time :
+    abs_time : pandas.DatetimeIndex
+        DatetimeIndex, converted from the provided timestamps
     """
-    def __init__(self, acceleration, timestamps, time_units='us', window=True, hours=(8, 20), parallel=False,
-                 continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
+    def __init__(self, acceleration, timestamps, time_units='us', window=True, hours=('08:00', '20:00'), parallel=False,
+                 parallel_cpu='max', continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None,
+                 std_height=True, verbose=True):
+        self.verbose = verbose
+
+        if parallel_cpu == 'max':
+            self.n_cpu = cpu_count()
+        elif parallel_cpu > cpu_count():
+            self.n_cpu = cpu_count()
+        else:
+            self.n_cpu = parallel_cpu
+
         if not window:
             self.parallel = False
         else:
             self.parallel = parallel
 
         if time_units is not 'datetime':
-            self.abs_time = to_datetime(timestamps, unit=time_units)  # "absolute" time
+            if self.verbose:
+                print('Converting timestamps to datetimes...\n')
+
+            if self.parallel:
+                pool = Pool(self.n_cpu)
+                times = array_split(timestamps, self.n_cpu)
+
+                other_args = ('raise', False, False, None, True, None, True, time_units)
+                result = pool.starmap(to_datetime, [(t, ) + other_args for t in times])
+                self.abs_time = result[0].append(result[1:])
+                pool.close()
         else:
             self.abs_time = timestamps
 
         if window:
+            if self.verbose:
+                print('Setting up windows...\n')
             days_inds = self.abs_time.indexer_between_time(hours[0], hours[1])
 
             day_ends = days_inds[where(diff(days_inds) > 1)[0]]
@@ -76,8 +104,14 @@ class AutoSit2Stand:
         self.accel = acceleration
 
         # initialize the sit2stand detection object
-        self.s2s = Sit2Stand(continuous_wavelet=continuous_wavelet, peak_pwr_band=peak_pwr_band,
-                             peak_pwr_par=peak_pwr_par, std_height=std_height)
+        if parallel:
+            self.s2s = [Sit2Stand(continuous_wavelet=continuous_wavelet, peak_pwr_band=peak_pwr_band,
+                             peak_pwr_par=peak_pwr_par, std_height=std_height) for i in range(len(self.days))]
+        else:
+            self.s2s = Sit2Stand(continuous_wavelet=continuous_wavelet, peak_pwr_band=peak_pwr_band,
+                                 peak_pwr_par=peak_pwr_par, std_height=std_height)
+        if self.verbose:
+            print('Initialization Done!\n')
 
     def run(self, acc_filter_kwargs=None, detector='stillness', detector_kwargs=None):
         """
@@ -130,6 +164,9 @@ class AutoSit2Stand:
             - lmin_kwargs=None
             - trans_quant=TransitionQuantifier()
         """
+        if self.verbose:
+            print('Setting up filters and detector...\n')
+
         self.acc_filter = AccFilter(**acc_filter_kwargs)
 
         if detector == 'stillness':
@@ -140,18 +177,24 @@ class AutoSit2Stand:
             raise ValueError(f"detector '{detector}' not recognized.")
 
         if self.parallel:
-            pool = Pool(min(cpu_count(), len(self.days)))
+            if self.verbose:
+                print('Processing in parallel...\n')
+            pool = Pool(min(self.n_cpu, len(self.days)))
 
-            results = [pool.apply(self.s2s.fit, args=(self.accel[day], self.abs_time[day], self.detector,
-                                                      self.acc_filter)) for day in self.days]
+            tmp = [pool.apply_async(self.s2s[i].fit, args=(self.accel[day], self.abs_time[day], self.detector,
+                                                           self.acc_filter)) for i, day in enumerate(self.days)]
+            results = [p.get() for p in tmp]
 
             pool.close()
 
-            return results
         else:
+            if self.verbose:
+                print('Processing...\n')
             results = self.s2s.fit(self.accel, self.abs_time, self.detector, self.acc_filter)
 
-            return results
+        if self.verbose:
+            print('Done!\n')
+        return results
 
 
 class Sit2Stand:
