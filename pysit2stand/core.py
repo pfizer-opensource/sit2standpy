@@ -4,9 +4,154 @@ Wavelet based methods of detecting postural transitions
 Lukas Adamowicz
 June 2019
 """
-from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64
+from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64, where, insert, append
 from scipy.signal import find_peaks
+from pandas import to_datetime
 import pywt
+from multiprocessing import cpu_count, Pool
+
+from pysit2stand import AccFilter, detectors
+
+
+class AutoSit2Stand:
+    """
+    Automatically run the sit-2-stand analysis on a sample of data. Data windowing will be done automatically if
+    necessary based on the provided parameters
+
+    Parameters
+    ----------
+    acceleration : numpy.ndarray
+        (N, 3) array of accelerations measured by a lumbar mounted accelerometer. Units of m/s^2.
+    timestamps : numpy.ndarray
+        (N, ) array of timestamps.
+    time_units : str, optional
+        Units of the timestamps. Options are those for converting to pandas.datetimes, ('ns', 'us', 'ms', etc), or
+        'datetime' if the timestamps are already pandas.datetime64. Default is 'us' (microseconds).
+    window : bool, optional
+        Window the provided data into parts of days. Default is True
+    hours : tuple, optional
+        Tuple of the hours to use to window the data. The indices define the start and stop time of the window during
+        the day, ex ('00:00', '24:00') is the whole day. Default is ('08:00', '20:00').
+    parallel : bool, optional
+        Use parallel processing. Ignored if `window` is False. Default is False.
+
+    Attributes
+    ----------
+    s2s : Sit2Stand
+        The Sit2Stand object framework for detecting sit-to-stand transitions
+    days : list
+        List of tuples of the indices corresponding to the different days as determined by hours and if data has been
+        windowed
+    abs_time :
+    """
+    def __init__(self, acceleration, timestamps, time_units='us', window=True, hours=(8, 20), parallel=False,
+                 continuous_wavelet='gaus1', peak_pwr_band=[0, 0.5], peak_pwr_par=None, std_height=True):
+        if not window:
+            self.parallel = False
+        else:
+            self.parallel = parallel
+
+        if time_units is not 'datetime':
+            self.abs_time = to_datetime(timestamps, unit=time_units)  # "absolute" time
+        else:
+            self.abs_time = timestamps
+
+        if window:
+            days_inds = self.abs_time.indexer_between_time(hours[0], hours[1])
+
+            day_ends = days_inds[where(diff(days_inds) > 1)[0]]
+            day_starts = days_inds[where(diff(days_inds) > 1)[0] + 1]
+
+            if day_ends[0] < day_starts[0]:
+                day_starts = insert(day_starts, 0, 0)
+            if day_starts[-1] > day_ends[-1]:
+                day_ends = append(day_ends, self.abs_time.size - 1)
+
+            self.days = []
+            for start, end in zip(day_starts, day_ends):
+                self.days.append(range(start, end))
+        else:
+            self.days = [range(0, self.abs_time.size)]
+
+        self.accel = acceleration
+
+        # initialize the sit2stand detection object
+        self.s2s = Sit2Stand(continuous_wavelet=continuous_wavelet, peak_pwr_band=peak_pwr_band,
+                             peak_pwr_par=peak_pwr_par, std_height=std_height)
+
+    def run(self, acc_filter_kwargs=None, detector='stillness', detector_kwargs=None):
+        """
+        Run the sit to stand detection
+
+        Parameters
+        ----------
+        acc_filter_kwargs : {None, dict}, optional
+            AccFilter key-word arguments. See Notes for default values. See `pysit2stand.AccFilter` for description
+            of the parameters
+        detector : {'stillness', 'displacement'}
+            Detector method to use. Default is 'stillness'
+        detector_kwargs : {None, dict}, optional
+            Detector method key-word arguments. See Notes for the default values, and `pysit2stand.detectors` for the
+            parameters of the chosen detector.
+
+        Returns
+        -------
+        sts : dict
+            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            transition. Keys for the dictionary are string timestamps of the start of the transition.
+
+        Attributes
+        ----------
+        acc_filter : AccFilter
+            The AccFilter object
+        self.detector : {detectors.Stillness, detectors.Displacement}
+            The detector object as determined by the choice in `detector`
+
+        Notes
+        -----
+        AccFilter default parameters
+            - reconstruction_method='moving average'
+            - lowpass_order=4
+            - lowpass_cutoff=5
+            - window=0.25,
+            - discrete_wavelet='dmey'
+            - extension_mode='constant'
+            - reconstruction_level=1
+        Detector methods default parameters
+            - gravity=9.81
+            - thresholds=None
+            - gravity_pass_ord=4
+            - gravity_pass_cut=0.8
+            - long_still=0.5,
+            - moving_window=0.3
+            - duration_factor=10
+            - displacement_factor=0.75
+            - lmax_kwargs=None
+            - lmin_kwargs=None
+            - trans_quant=TransitionQuantifier()
+        """
+        self.acc_filter = AccFilter(**acc_filter_kwargs)
+
+        if detector == 'stillness':
+            self.detector = detectors.Stillness(**detector_kwargs)
+        elif detector == 'displacement':
+            self.detector = detectors.Displacement(**detector_kwargs)
+        else:
+            raise ValueError(f"detector '{detector}' not recognized.")
+
+        if self.parallel:
+            pool = Pool(min(cpu_count(), len(self.days)))
+
+            results = [pool.apply(self.s2s.fit, args=(self.accel[day], self.abs_time[day], self.detector,
+                                                      self.acc_filter)) for day in self.days]
+
+            pool.close()
+
+            return results
+        else:
+            results = self.s2s.fit(self.accel, self.abs_time, self.detector, self.acc_filter)
+
+            return results
 
 
 class Sit2Stand:
