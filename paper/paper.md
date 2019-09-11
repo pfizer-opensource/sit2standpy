@@ -13,7 +13,7 @@ authors:
   - name: Lukas Adamowicz
     affiliation: 1
 affiliations:
- - name: Pfizer, Inc.
+ - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
    index: 1
 date: 4 September, 2019
 bibliography: paper.bib
@@ -33,18 +33,29 @@ from lumbar-mounted accelerometer data, and then provide quantitative metrics as
 transitions. A modular framework is employed that would allow for easy modification of parts of the algorithm to suit 
 other specific requirements, while still keeping core elements of the algorithm intact. As gyroscopes impose a 
 significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
-only one sensor to collect days worth of analyzable data.
+a single sensor to collect days worth of analyzable data.
 
-# Mathematics
+# Capabilities
 
-Single dollars ($) are required for inline mathematics e.g. $f(x) = e^{\pi/x}$
+At its simplest, ``PySit2Stand`` takes raw accelerometer data with timestamps and returns detected sit-to-stand 
+transitions. Data can be windowed by full days, or parts of days can be selected (i.e. don't have to analyze night-time,
+when transitions shouldn't be occuring). Additionally, ``PySit2Stand`` can take advantage of multiple core CPUs with a
+parallel processing option, which provides run-time benefits both in the initial processing stages, and in detecting the
+transitions. 
 
-Double dollars make self-standing equations:
+Under this simple interface, there are several points of customization, which may aid in transition detection under
+specific conditions. Users maintain control, if desired, over filtering and initial pre-processing parameters and some detection
+parameters. Additionally, there are two options for detection algorithms, offering different levels of strictness for
+the requirement that stillness precede a valid transition. 
 
-$$\Theta(x) = \left\{\begin{array}{l}
-0\textrm{ if } x < 0\cr
-1\textrm{ else}
-\end{array}\right.$$
+# Use of PySit2Stand
+
+``PySit2Stand`` contains example code with sample data in its GitHub repository.
+
+# Availability
+
+``PySit2Stand`` is distributed under the MIT License and can be installed through Python's pip install command.
+
 
 
 # Citations
