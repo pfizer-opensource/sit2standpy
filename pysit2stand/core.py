@@ -40,6 +40,22 @@ class AutoSit2Stand:
         Number of CPUs to use for parallel processing. Ignored if parallel is False. 'max' uses the maximum number
         of CPUs available on the machine, or provide a number less than the maximum to use. Default is 'max'.
 
+    Sit to Stand Detection Parameters
+    ---------------------------------
+    continuous_wavelet : str, optional
+        Continuous wavelet to use for signal deconstruction. Default is 'gaus1'. CWT coefficients will be summed
+        in frequency bands that will be used for detecting approximate STS locations.
+    peak_pwr_band : {array_like, int, float}, optional
+        Frequency band in which to sum the CWT coefficients. Either an array_like of length 2, with the lower and
+        upper limits, or a number, which will be taken as the upper limit, and the lower limit will be set to 0.
+        Default is [0, 0.5].
+    peak_pwr_par : {None, dict}, optional
+        Extra parameters (key-word arguments) to pass to scipy.signal.find_peaks when finding peaks in the
+        summed CWT coefficient power band data. Default is None, which will use the default parameters, unless
+        std_height is True.
+    std_height : bool, optional
+        Use the standard deviation of the power for peak finding. Default is True.
+
     Attributes
     ----------
     s2s : Sit2Stand
