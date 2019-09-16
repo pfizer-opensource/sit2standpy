@@ -95,6 +95,8 @@ class AutoSit2Stand:
                 result = pool.starmap(to_datetime, [(t, ) + other_args for t in times])
                 self.abs_time = result[0].append(result[1:])
                 pool.close()
+            else:
+                self.abs_time = to_datetime(timestamps, unit=time_units)
         else:
             self.abs_time = timestamps
 
