@@ -108,14 +108,17 @@ class AutoSit2Stand:
             day_ends = days_inds[where(diff(days_inds) > 1)[0]]
             day_starts = days_inds[where(diff(days_inds) > 1)[0] + 1]
 
-            if day_ends[0] < day_starts[0]:
-                day_starts = insert(day_starts, 0, 0)
-            if day_starts[-1] > day_ends[-1]:
-                day_ends = append(day_ends, self.abs_time.size - 1)
-
             self.days = []
-            for start, end in zip(day_starts, day_ends):
-                self.days.append(range(start, end))
+            if day_ends.size == 0 and day_starts == 0:
+                self.days.append(days_inds)
+            else:
+                if day_ends[0] < day_starts[0]:
+                    day_starts = insert(day_starts, 0, 0)
+                if day_starts[-1] > day_ends[-1]:
+                    day_ends = append(day_ends, self.abs_time.size - 1)
+
+                for start, end in zip(day_starts, day_ends):
+                    self.days.append(range(start, end))
         else:
             self.days = [range(0, self.abs_time.size)]
 
@@ -184,6 +187,11 @@ class AutoSit2Stand:
         """
         if self.verbose:
             print('Setting up filters and detector...\n')
+
+        if acc_filter_kwargs is None:
+            acc_filter_kwargs = {}
+        if detector_kwargs is None:
+            detector_kwargs = {}
 
         self.acc_filter = AccFilter(**acc_filter_kwargs)
 
