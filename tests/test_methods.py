@@ -28,7 +28,7 @@ def test_stillness():
     data = loadtxt('..' + sep + 'data' + sep + 'sample.csv', delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
-    a_time = to_datetime(time, unit='ms', utc=True).tz_convert('EST').tz_localize(None)
+    a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
 
     a_filt = s2s.AccFilter(lowpass_order=4, lowpass_cutoff=5, discrete_wavelet='dmey',
                            reconstruction_level=1, reconstruction_method='moving average')
@@ -45,15 +45,15 @@ def test_stillness():
 
     SiSt = wavelet_ptd.fit(acc, a_time, still, a_filt, fs=128)
 
-    assert len(SiSt) == 4
-    assert allclose(array([SiSt[i].duration for i in SiSt]), array([1.984, 1.602, 1.461, 1.461]), atol=1e-3)
+    assert len(SiSt) == 3
+    assert allclose(array([SiSt[i].duration for i in SiSt]), array([1.413972, 1.64052, 1.67958]), atol=1e-3)
 
 
 def test_displacement():
     data = loadtxt('..' + sep + 'data' + sep + 'sample.csv', delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
-    a_time = to_datetime(time, unit='ms', utc=True).tz_convert('EST').tz_localize(None)
+    a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
 
     a_filt = s2s.AccFilter(lowpass_order=4, lowpass_cutoff=5, discrete_wavelet='dmey',
                            reconstruction_level=1, reconstruction_method='moving average')
@@ -70,5 +70,6 @@ def test_displacement():
 
     SiSt = wavelet_ptd.fit(acc, a_time, disp, a_filt, fs=128)
 
-    assert len(SiSt) == 4
-    assert allclose(array([SiSt[i].duration for i in SiSt]), array([1.984, 1.602, 1.461, 1.461]), atol=1e-3)
+    assert len(SiSt) == 5
+    assert allclose(array([SiSt[i].duration for i in SiSt]),
+                    array([1.413972, 1.64052, 1.67958, 3.296664, 1.812384]), atol=1e-3)
