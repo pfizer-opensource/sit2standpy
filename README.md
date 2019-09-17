@@ -25,17 +25,27 @@ computing and allow for customization if desired.
 
 ```python
 import pysit2stand as s2s
-import h5py  # for importing demo data
+import numpy as np  # importing sample data
+from importlib import resources
 
-acceleration_filter = s2s.AccFilter()
-stillness_detector = s2s.detectors.Stillness()
+# locate the sample data and load it
+with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+    data = np.loadtxt(file_path, delimiter=',')
 
-sts_detector = s2s.Sit2Stand()
+# separate the stored sample data
+time = data[:, 0]
+accel = data[:, 1:]
 
-acceleration = import_acceleration_data()
-timestamps = import_timestamps()
+# initialize the framework for detection
+asts = s2s.AutoSit2Stand(accel, time, time_units='us', window=False, hours=('08:00', '20:00'), parallel=False, 
+                         parallel_cpu='max', continuous_wavelet='gaus1', peak_pwr_band=[0.0, 0.5], 
+                         peak_pwr_par=None, std_height=True, verbose=True)
 
-sit_to_stands = sts_detector.fit(acceleration, timestamps, stillness_detector, acceleration_filter, fs=100)
+# run the sit-to-stand detection
+SiSt = asts.run(acc_filter_kwargs=None, detector='stillness', detector_kwargs=None)
+
+# print the list of Transition objects, stored as a dictionary with the time they occurred
+print(SiSt)
 ```
 
 `sit_to_stands` is then a dictionary of `Transition` objects containing information about each of the transitions 
