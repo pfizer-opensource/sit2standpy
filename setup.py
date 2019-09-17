@@ -13,6 +13,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url="https://github.com/PfizerRD/pysit2stand",
     include_pacakge_data=True,
+    data_files=[('data', ['data/sample.csv'])],
     packages=setuptools.find_packages(),
     license='MIT',
     classifiers=[
