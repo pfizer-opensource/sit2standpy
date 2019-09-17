@@ -1,5 +1,10 @@
 # pysit2stand
-Python based framework for detecting sit-to-stand transitions using acceleration from a lumbar mounted sensor.
+``PySit2Stand`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions 
+from lumbar-mounted accelerometer data, and then provide quantitative metrics assessing the performance of the 
+transitions. A modular framework is employed that would allow for easy modification of parts of the algorithm to suit 
+other specific requirements, while still keeping core elements of the algorithm intact. As gyroscopes impose a 
+significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
+a single sensor to collect days worth of analyzable data.
 
 
 ## Requirements
