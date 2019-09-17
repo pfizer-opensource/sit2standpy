@@ -1,10 +1,16 @@
-.. pysit2stand Overall frameworks
+.. _ref-detectors:
+.. currentmodule:: pysit2stand
 
-pysit2stand.detectors
+=======================================
+Detectors
 =======================================
 
+Displacement method
+-------------------
 .. autoclass:: pysit2stand.detectors.Displacement
    :members:
 
+Stillness variation
+------------------
 .. autoclass:: pysit2stand.detectors.Stillness
    :members:
