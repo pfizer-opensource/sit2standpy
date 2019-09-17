@@ -35,6 +35,11 @@ other specific requirements, while still keeping core elements of the algorithm 
 significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
 a single sensor to collect days worth of analyzable data.
 
+# Current Work
+
+``PySit2Stand`` was validated, and used to compute the results presented in [@adamowicz:2019]. Detailed background and
+presentation of the methods can be found there as well.
+
 # Capabilities
 
 At its simplest, ``PySit2Stand`` takes raw accelerometer data with timestamps and returns detected sit-to-stand 
@@ -55,26 +60,19 @@ strictness for the requirement that stillness precede a valid transition.
 
 ``PySit2Stand`` is distributed under the MIT License and can be installed through Python's pip install command.
 
+```shell script
+pip install pysit2stand
+```
+
+# Dependences
+
+PySit2Stand requires the following Python packages:
+
+- Python >=3.7
+- NumPy - [@numpy]
+- SciPy - [@scipy]
+- PyWavelets - [@pywavelets]
 
 
-# Citations
-
-Citations to entries in paper.bib should be in
-[rMarkdown](http://rmarkdown.rstudio.com/authoring_bibliographies_and_citations.html)
-format.
-
-For a quick reference, the following citation commands can be used:
-- `@author:2001`  ->  "Author et al. (2001)"
-- `[@author:2001]` -> "(Author et al., 2001)"
-- `[@author1:2001; @author2:2001]` -> "(Author1 et al., 2001; Author2 et al., 2002)"
-
-# Figures
-
-Figures can be included like this: ![Example figure.](figure.png)
-
-# Acknowledgements
-
-We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
-Oh, and support from Kathryn Johnston during the genesis of this project.
 
 # References
