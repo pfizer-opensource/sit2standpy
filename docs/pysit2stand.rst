@@ -13,6 +13,8 @@ pysit2stand
 Core frameworks
 --------
 
+.. autoclass:: pysit2stand.AutoSit2Stand
+   :members:
 .. autoclass:: pysit2stand.Sit2Stand
    :members:
 .. autoclass:: pysit2stand.AccFilter
