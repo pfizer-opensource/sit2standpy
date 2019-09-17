@@ -68,7 +68,7 @@ pip install pysit2stand
 
 PySit2Stand requires the following Python packages:
 
-- Python >=3.7
+- Python >=3.6
 - NumPy - [@numpy]
 - SciPy - [@scipy]
 - PyWavelets - [@pywavelets]

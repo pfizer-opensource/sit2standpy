@@ -9,7 +9,7 @@ a single sensor to collect days worth of analyzable data.
 
 ## Requirements
 
-- Python >= 3.7
+- Python >= 3.6
 - Numpy >= 1.16.2
 - Scipy >= 1.2.1
 - pywavelets >= 1.0.3
