@@ -16,7 +16,13 @@ setuptools.setup(
     package_data={'pysit2stand': ['data/*.csv']},
     packages=setuptools.find_packages(),
     license='MIT',
-    python_requires='>=3',
+    python_requires='>=3.6',
+    install_requires=[
+        'numpy',
+        'scipy',
+        'pandas',
+        'pywavelets'
+    ],
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

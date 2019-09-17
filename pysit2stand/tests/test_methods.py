@@ -30,8 +30,8 @@ def test_transition():
 
 def test_stillness():
     if version_info < (3, 7):
-        with pkr.resource_filename('pysit2stand.data', 'sample.csv') as file_path:
-            data = loadtxt(file_path, delimiter=',')
+        file_path = pkr.resource_filename('pysit2stand.data', 'sample.csv')
+        data = loadtxt(file_path, delimiter=',')
     else:
         with resources.path('pysit2stand.data', 'sample.csv') as file_path:
             data = loadtxt(file_path, delimiter=',')
@@ -60,8 +60,8 @@ def test_stillness():
 
 def test_displacement():
     if version_info < (3, 7):
-        with pkr.resource_filename('pysit2stand.data', 'sample.csv') as file_path:
-            data = loadtxt(file_path, delimiter=',')
+        file_path = pkr.resource_filename('pysit2stand.data', 'sample.csv')
+        data = loadtxt(file_path, delimiter=',')
     else:
         with resources.path('pysit2stand.data', 'sample.csv') as file_path:
             data = loadtxt(file_path, delimiter=',')
