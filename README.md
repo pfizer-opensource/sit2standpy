@@ -20,7 +20,15 @@ These are the versions developed on, and some backwards compatability may be pos
 
 Run in the command line/terminal:
 
-`pip install pysit2stand`
+```shell script
+pip install pysit2stand
+```
+
+pip will automatically collect and install the required packages by default. If you do not want this behavior, run
+
+```shell script
+pip install pysit2stand --no-deps
+```
 
 
 ## Testing
