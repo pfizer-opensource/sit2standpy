@@ -38,15 +38,14 @@ a single sensor to collect days worth of analyzable data.
 # Capabilities
 
 At its simplest, ``PySit2Stand`` takes raw accelerometer data with timestamps and returns detected sit-to-stand 
-transitions. Data can be windowed by full days, or parts of days can be selected (i.e. don't have to analyze night-time,
-when transitions shouldn't be occuring). Additionally, ``PySit2Stand`` can take advantage of multiple core CPUs with a
-parallel processing option, which provides run-time benefits both in the initial processing stages, and in detecting the
-transitions. 
+transitions. Data can be windowed by full days, or parts of days can be selected (e.g. window from 08:00 to 20:00). 
+Additionally, ``PySit2Stand`` can take advantage of multiple core CPUs with a parallel processing option, which provides 
+run-time benefits both in the initial processing stages, and in detecting the transitions. 
 
 Under this simple interface, there are several points of customization, which may aid in transition detection under
-specific conditions. Users maintain control, if desired, over filtering and initial pre-processing parameters and some detection
-parameters. Additionally, there are two options for detection algorithms, offering different levels of strictness for
-the requirement that stillness precede a valid transition. 
+specific conditions. Users maintain control, if desired, over filtering and initial pre-processing parameters and some 
+detection parameters. Additionally, there are two options for detection algorithms, offering different levels of 
+strictness for the requirement that stillness precede a valid transition. 
 
 # Use of PySit2Stand
 
