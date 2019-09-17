@@ -12,6 +12,56 @@ import pywt
 
 
 class Transition:
+    """
+    Object for storing information about a postural transition
+
+    Parameters
+    ----------
+    times : array_like
+        array_like of start and end timestamps (pandas.Timestamp), [start_time, end_time]. Duration will be
+        calculated as the difference.
+    t_type : {'SiSt', 'StSi'}, optional
+        Transition type, either 'SiSt' for sit-to-stand, or 'StSi' for stand-to-sit. Default is 'SiSt'.
+    v_displacement : {float, None}, optional
+        Vertical displacement during the transition, or None. Default is None.
+    max_v_velocity : {float, None}, optional
+        Maximum vertical velocity during the transition, or None. Default is None.
+    min_v_velocity : {float, None}, optional
+        Minimum vertical velocity during the transition, or None. Default is None.
+    max_acceleration : {float, None}, optional
+        Maximum acceleration during the transition, or None. Default is None.
+    min_acceleration : {float, None}, optional
+        Minimum acceleration during the transition, or None. Default is None.
+    sparc : {float, None}, optional
+        SPectral ARC length parameter, measuring the smoothness of the transition, or None. Default is None.
+
+    Attributes
+    ----------
+    times : tuple
+        Tuple of start and end times.
+    start_time : pandas.Timestamp
+        Start timestamp of the transition.
+    end_time : pandas.Timestamp
+        End timestamp of the transition.
+    duration : float
+        Duration of the transition in seconds.
+    ttype : str
+        Short transition type name.
+    long_type : str
+        Full transition type name.
+    v_displacement : {float, None}
+        Vertical displacement.
+    max_v_velocity : {float, None}
+        Maximum vertical velocity.
+    min_v_velocity : {float, None}
+        Minimum vertical velocity.
+    max_acceleration : {float, None}
+        Maximum acceleration.
+    min_acceleration : {float, None}
+        Minimum acceleration.
+    sparc : {float, None}
+        SPectral ARC length measure of smoothness.
+    """
     def __str__(self):
         return f'Postural Transition'
 
@@ -19,10 +69,7 @@ class Transition:
         return f'{self.long_type} (Duration: {self.duration:.2f})'
 
     def __init__(self, times, t_type='SiSt', v_displacement=None, max_v_velocity=None, min_v_velocity=None,
-                 max_acceleration=None, min_acceleration=None):
-        """
-        Object for storing information about a postural transition
-        """
+                 max_acceleration=None, min_acceleration=None, sparc=None):
         self.times = times
         if isinstance(times, (tuple, list, ndarray)):
             self.start_time = times[0]
@@ -44,44 +91,38 @@ class Transition:
         self.min_v_velocity = min_v_velocity
         self.max_acceleration = max_acceleration
         self.min_acceleration = min_acceleration
+        self.sparc = sparc
 
 
 class AccFilter:
-    def __str__(self):
-        return f'Acceleration Pre-Processing Filter'
+    """
+    Object for filtering and reconstructing raw acceleration data
 
-    def __repr__(self):
-        return f'Acceleration Filter (Method: {self.method}, Lowpass Order: {self.lp_ord}, Lowpass Cutoff: ' \
-            f'{self.lp_cut}Hz, Window: {self.window}s)'
-
+    Parameters
+    ----------
+    reconstruction_method : {'moving average', 'dwt'}, optional
+        Method for computing the reconstructed acceleration. Default is 'moving average', which takes the moving
+        average over the specified window. Other option is 'dwt', which uses the discrete wavelet transform to
+        deconstruct and reconstruct the signal while filtering noise out.
+    lowpass_order : int, optional
+        Initial low-pass filtering order. Default is 4.
+    lowpass_cutoff : float, optional
+        Initial low-pass filtering cuttoff, in Hz. Default is 5Hz.
+    window : float, optional
+        Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'
+    discrete_wavelet : str, optional
+        Discrete wavelet to use if reconstruction_method is 'dwt'. Default is 'dmey'. See
+        pywt.wavelist(kind='discrete') for a complete list of options. Ignored if reconstruction_method is
+        'moving average'.
+    extension_mode : str, optional
+        Signal extension mode to use in the DWT de- and re-construction of the signal. Default is 'constant', see
+        pywt.Modes.modes for a list of options. Ignored if reconstruction_method is 'moving average'.
+    reconstruction_level : int, optional
+        Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
+        'moving average'
+    """
     def __init__(self, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
                  window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
-        """
-        Object for filtering and reconstructing raw acceleration data
-
-        Parameters
-        ----------
-        reconstruction_method : {'moving average', 'dwt'}, optional
-            Method for computing the reconstructed acceleration. Default is 'moving average', which takes the moving
-            average over the specified window. Other option is 'dwt', which uses the discrete wavelet transform to
-            deconstruct and reconstruct the signal while filtering noise out.
-        lowpass_order : int, optional
-            Initial low-pass filtering order. Default is 4.
-        lowpass_cutoff : float, optional
-            Initial low-pass filtering cuttoff, in Hz. Default is 5Hz.
-        window : float, optional
-            Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'
-        discrete_wavelet : str, optional
-            Discrete wavelet to use if reconstruction_method is 'dwt'. Default is 'dmey'. See
-            pywt.wavelist(kind='discrete') for a complete list of options. Ignored if reconstruction_method is
-            'moving average'.
-        extension_mode : str, optional
-            Signal extension mode to use in the DWT de- and re-construction of the signal. Default is 'constant', see
-            pywt.Modes.modes for a list of options. Ignored if reconstruction_method is 'moving average'.
-        reconstruction_level : int, optional
-            Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
-            'moving average'
-        """
         if reconstruction_method == 'moving average' or reconstruction_method == 'dwt':
             self.method = reconstruction_method
         else:
@@ -148,13 +189,15 @@ class AccFilter:
 
 def mov_stats(seq, window):
     """
-    Compute the centered moving average and standard deviation
+    Compute the centered moving average and standard deviation.
+
     Parameters
     ----------
     seq : numpy.ndarray
         Data to take the moving average and standard deviation on.
     window : int
         Window size for the moving average/standard deviation.
+
     Returns
     -------
     m_mn : numpy.ndarray
