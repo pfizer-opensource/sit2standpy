@@ -2,6 +2,7 @@ from numpy import array, loadtxt, allclose
 import pysit2stand as s2s
 from pandas import to_datetime
 from os import sep
+from importlib import resources
 
 
 # UTILITY
@@ -25,7 +26,8 @@ def test_transition():
 
 
 def test_stillness():
-    data = loadtxt('..' + sep + 'data' + sep + 'sample.csv', delimiter=',')
+    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+        data = loadtxt(file_path, delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
     a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
@@ -50,7 +52,8 @@ def test_stillness():
 
 
 def test_displacement():
-    data = loadtxt('..' + sep + 'data' + sep + 'sample.csv', delimiter=',')
+    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+        data = loadtxt(file_path, delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
     a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
