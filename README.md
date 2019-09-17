@@ -18,10 +18,17 @@ Run in the command line/terminal:
 `pip install pysit2stand`
 
 
+## Testing
+
+Automated tests can be run with ``pytest`` through the terminal:
+
+```shell script
+pytest --pyargs pysit2stand.tests
+```
+
 ## Usage
 
-pysit2stand works with one central framework, to which several sub frameworks are passed, which do the bulk of the 
-computing and allow for customization if desired.
+Basic use is accomplished through the ``AutoSit2Stand`` object:
 
 ```python
 import pysit2stand as s2s
