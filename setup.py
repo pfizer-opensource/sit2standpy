@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pysit2stand",
-    version="2019.09",
+    version="1.0.0rc1",
     author="Lukas Adamowicz",
     author_email="lukas.adamowicz@pfizer.com",
     description="Sit-to-stand detection using a single lumbar-mounted accelerometer.",
@@ -16,10 +16,12 @@ setuptools.setup(
     package_data={'pysit2stand': ['data/*.csv']},
     packages=setuptools.find_packages(),
     license='MIT',
+    python_requires='>=3',
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering",
+        "Programming Language :: Python :: 3.7"
     ],
 )
