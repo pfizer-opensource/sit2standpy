@@ -1,8 +1,11 @@
 from numpy import array, loadtxt, allclose
 import pysit2stand as s2s
 from pandas import to_datetime
-from os import sep
-from importlib import resources
+from sys import version_info
+if version_info < (3, 7):
+    import pkg_resources as pkr
+else:
+    from importlib import resources
 
 
 # UTILITY
@@ -26,8 +29,12 @@ def test_transition():
 
 
 def test_stillness():
-    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
-        data = loadtxt(file_path, delimiter=',')
+    if version_info < (3, 7):
+        with pkr.resource_filename('pysit2stand.data', 'sample.csv') as file_path:
+            data = loadtxt(file_path, delimiter=',')
+    else:
+        with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+            data = loadtxt(file_path, delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
     a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
@@ -52,8 +59,12 @@ def test_stillness():
 
 
 def test_displacement():
-    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
-        data = loadtxt(file_path, delimiter=',')
+    if version_info < (3, 7):
+        with pkr.resource_filename('pysit2stand.data', 'sample.csv') as file_path:
+            data = loadtxt(file_path, delimiter=',')
+    else:
+        with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+            data = loadtxt(file_path, delimiter=',')
     time = data[:, 0]
     acc = data[:, 1:]
     a_time = to_datetime(time, unit='us', utc=True).tz_convert('EST').tz_localize(None)
