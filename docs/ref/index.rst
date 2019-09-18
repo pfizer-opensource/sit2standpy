@@ -1,12 +1,10 @@
 .. pysit2stand api reference
 
 API Reference
-=======================================
+=============
 
 .. toctree::
-  :maxdepth: 2
+  :maxdepth: 3
 
-  core
-  detectors
   transitions
   misc
