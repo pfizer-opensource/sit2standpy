@@ -25,7 +25,7 @@ python:
     - method: pip
       path: .
       extra_requirements:
-        - docs
+        - numpydocs
     - method: setuptools
       path: .
   system_packages: true
