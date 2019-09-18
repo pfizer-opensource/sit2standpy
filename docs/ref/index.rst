@@ -4,9 +4,9 @@ API Reference
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+  :maxdepth: 2
 
-   core.rst
-   detectors.rst
-   transitions.rst
-   misc.rst
+  core
+  detectors
+  transitions
+  misc

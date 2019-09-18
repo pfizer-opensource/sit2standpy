@@ -45,6 +45,6 @@ Contents
 .. toctree::
    :maxdepth: 2
 
-   installation.rst
-   usage.rst
-   ref/index.rst
+   installation
+   usage
+   ref/index
