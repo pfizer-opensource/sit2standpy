@@ -13,8 +13,18 @@ Basic usage of ``PySit2Stand`` to detect transitions in sample data:
 
   >>> import pysit2stand as s2s
   >>> import numpy as np  # importing sample data
-  >>> from importlib import resources  # python >= 3.7
-  >>> # for earlier python versions, use pkg_resources.resource_filename
+  >>> if version_info < (3, 7):
+  >>>   from pkg_resources import resource_filename
+  >>> else:
+  >>>   from importlib import resources
+
+  >>> # locate the sample data and load it (depending on python version)
+  >>> if version_info < (3, 7):
+  >>>   file_path = resource_filename('pysit2stand', 'data/sample.csv')
+  >>>   data = np.loadtxt(file_path, delimiter=',')
+  >>> else:
+  >>>   with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+  >>>     data = np.loadtxt(file_path, delimiter=',')
 
   >>> # locate the sample data and load it
   >>> with resources.path('pysit2stand.data', 'sample.csv') as file_path:
