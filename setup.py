@@ -16,6 +16,10 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/PfizerRD/pysit2stand",
+    download_url="https://pypi.org/project/pysit2stand/",
+    project_urls={
+        "Documentation": "https://pysit2stand.readthedocs.io/en/latest/"
+    },
     include_pacakge_data=True,
     package_data={'pysit2stand': ['data/*.csv']},
     packages=setuptools.find_packages(),
