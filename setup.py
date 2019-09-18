@@ -3,9 +3,13 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
+fid = open('pysit2stand/version.py')
+vers = fid.readlines()[-1].split()[-1].strip("\"'")
+fid.close()
+
 setuptools.setup(
     name="pysit2stand",
-    version="1.0.0rc4",
+    version=vers,
     author="Lukas Adamowicz",
     author_email="lukas.adamowicz@pfizer.com",
     description="Sit-to-stand detection using a single lumbar-mounted accelerometer.",

@@ -19,14 +19,15 @@ sys.path.insert(0, '/Users/adamol/Documents/STRYDE SitToStand/Sit to Stand Analy
 
 # -- Project information -----------------------------------------------------
 
-project = 'pysit2stand'
+project = 'PySit2Stand'
 copyright = '2019, Lukas Adamowicz'
 author = 'Lukas Adamowicz'
 
 # The short X.Y version
-version = '1.0'
+import pysit2stand as s2s
+version = s2s.__version__[:3]
 # The full version, including alpha/beta/rc tags
-release = '1.0.0rc4'
+release = s2s.__version__
 
 
 # -- General configuration ---------------------------------------------------
@@ -38,7 +39,7 @@ release = '1.0.0rc4'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']  # numpydoc
+extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
