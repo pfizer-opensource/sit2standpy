@@ -46,5 +46,5 @@ Contents
    :maxdepth: 2
 
    installation.rst
-   ref/index.rst
    usage.rst
+   ref/index.rst
