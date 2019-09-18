@@ -6,6 +6,11 @@ other specific requirements, while still keeping core elements of the algorithm 
 significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
 a single sensor to collect days worth of analyzable data.
 
+## Documentation
+
+[Full documentation](https://pysit2stand.readthedocs.io/en/latest/) is available, containing API references, 
+installation instructions, and usage examples.
+
 
 ## Requirements
 
@@ -70,11 +75,6 @@ print(SiSt)
 
 `sit_to_stands` is then a dictionary of `Transition` objects containing information about each of the transitions 
 detected
-
-
-## Documentation
-
-[Full documentation](https://pysit2stand.readthedocs.io/en/latest/) is available, containing API references
 
 
 
