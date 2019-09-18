@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 PySit2Stand: Automated Sit-to-Stand Transition Detection
-=======================================
+========================================================
 
 ``PySit2Stand`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions
 from lumbar-mounted accelerometer data, and then provide quantitative metrics assessing the performance of the
@@ -46,5 +46,5 @@ Contents
    :maxdepth: 2
 
    installation.rst
-   api_ref.rst
+   ref/index.rst
    usage.rst

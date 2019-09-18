@@ -1,4 +1,4 @@
-.. _ref-usage:
+.. pysit2stand usage
 
 =======================================
 Usage examples

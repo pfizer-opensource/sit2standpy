@@ -27,4 +27,4 @@ These requirements will be collected if not already installed, and should requir
 - Scipy >= 1.2.1
 - pywavelets >= 1.0.3
 
-These are the versions developed on, and some backwards compatability may be possible.
+These are the versions developed on, and some backwards compatibility may be possible.
