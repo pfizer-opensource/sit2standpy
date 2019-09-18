@@ -8,7 +8,7 @@ Core Functions
 Automated framework
 -------------------
 .. autoclass:: pysit2stand.AutoSit2Stand
-   :members:
+  :members:
 
 Base framework
 --------------
