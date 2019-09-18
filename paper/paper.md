@@ -54,15 +54,12 @@ strictness for the requirement that stillness precede a valid transition.
 
 # Use of PySit2Stand
 
-``PySit2Stand`` contains example code with sample data in its GitHub repository.
+``PySit2Stand`` contains example code with sample data in its GitHub repository. Full documentation with usage examples,
+installation instructions, and API reference are all available at [https://pysit2stand.readthedocs.io/en/latest/](https://pysit2stand.readthedocs.io/en/latest/)
 
 # Availability
 
-``PySit2Stand`` is distributed under the MIT License and can be installed through Python's pip install command.
-
-```shell script
-pip install pysit2stand
-```
+``PySit2Stand`` is distributed under the MIT License and is published on PyPI, the Python Package Index.
 
 # Dependences
 

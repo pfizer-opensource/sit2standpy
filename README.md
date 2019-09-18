@@ -72,4 +72,9 @@ print(SiSt)
 detected
 
 
+## Documentation
+
+[Full documentation](https://pysit2stand.readthedocs.io/en/latest/) is available, containing API references
+
+
 
