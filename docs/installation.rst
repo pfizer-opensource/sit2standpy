@@ -10,14 +10,8 @@ PySit2Stand can be installed by running the following in the terminal:
 
 ::
 
-    pip install pysit2stand
-
-
-pip will automatically collect and install the dependencies. If this is not desired, run the following:
-
-::
-
-    pip install pysit2stand --no-deps
+    pip install pysit2stand  # install checking for dependencies with pip
+    pip install pysit2stand --no-deps  # install without checking for dependencies
 
 
 Requirements
