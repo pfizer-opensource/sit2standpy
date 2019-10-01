@@ -29,7 +29,7 @@ class AccFilter:
     lowpass_cutoff : float, optional
         Initial low-pass filtering cuttoff, in Hz. Default is 5Hz.
     window : float, optional
-        Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'
+        Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'.
     discrete_wavelet : str, optional
         Discrete wavelet to use if reconstruction_method is 'dwt'. Default is 'dmey'. See
         pywt.wavelist(kind='discrete') for a complete list of options. Ignored if reconstruction_method is
@@ -39,7 +39,7 @@ class AccFilter:
         pywt.Modes.modes for a list of options. Ignored if reconstruction_method is 'moving average'.
     reconstruction_level : int, optional
         Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
-        'moving average'
+        'moving average'.
     """
     def __init__(self, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
                  window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
