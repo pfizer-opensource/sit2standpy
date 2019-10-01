@@ -5,10 +5,11 @@ Lukas Adamowicz
 Pfizer
 2019
 """
-from numpy import around
+from numpy import around, mean, diff, timedelta64
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt
 import pywt
+from pandas import to_datetime
 
 from pysit2stand.utility import mov_stats
 
@@ -104,3 +105,70 @@ class AccFilter:
             macc_r, _, _ = mov_stats(macc_f, n_window)  # compute the moving average
 
         return macc_f, macc_r[:macc_f.size]
+
+
+def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False, hours=('08:00', '20:00')):
+    """
+    Convert timestamps into pandas datetime64 objects, and window as appropriate.
+
+    Parameters
+    ----------
+    times : array_like
+        N-length array of timestamps to convert.
+    accel : {numpy.ndarray, pd.Series}
+        (N, 3) array of acceleration values. They will be windowed the same way as the timestamps if `window` is set
+        to True.
+    time_units : {None, str}, optional
+        Time units. Useful if conversion is from unix timestamps in seconds (s), milliseconds (ms), microseconds (us),
+        or nanoseconds (ns). If not None, will override the value in conv_kw, though one or the other must be provided.
+        Default is None.
+    conv_kw : {None, dict}, optional
+        Additional key-word arguments for the pandas.to_datetime function. If time_units is not None, that value
+        will be used and overwrite the value in conv_kw. If the timestamps are in unix time, it is unlikely this
+        argument will be necessary. Default is None.
+    window : bool, optional
+        Window the timestamps into the selected hours per day.
+    hours : array_like, optional
+        Length two array_like of hours (24-hour format) as strings, defining the start (inclusive) and end (exclusive)
+        times to include in the processing. Default is ('08:00', '20:00').
+
+    Returns
+    -------
+    timestamps : {pandas.DatetimeIndex, pandas.Series}
+        Array_like of timestamps. DatetimeIndex if times was a numpy.ndarray, or list. pandas.Series with a dtype of
+        'datetime64' if times was a pandas.Series. If `window` is set to True, these are the timestamps falling between
+        the hours selected.
+    dt : float
+        Sampling time in seconds.
+    accel : {numpy.ndarray, pd.Series}, optional
+        Acceleration windowed the same way as the timestamps, if `window` is True. If `window` is False, then the
+        acceleration is not returned.
+    """
+    if conv_kw is not None:
+        if time_units is not None:
+            conv_kw['unit'] = time_units
+    else:
+        if time_units is not None:
+            conv_kw = {'unit': time_units}
+        else:
+            raise ValueError('Either (time_units) must be defined, or "unit" must be a key of (conv_kw).')
+
+    # convert using pandas
+    timestamps = to_datetime(times, **conv_kw)
+
+    # find the sampling time
+    dt = mean(diff(timestamps)) / timedelta64(1, 's')  # convert to seconds
+
+    # windowing
+    if window:
+        hour_inds = timestamps.indexer_between_time(hours[0], hours[1])
+
+        timestamps = timestamps[hour_inds]
+        accel = accel[hour_inds]
+
+        return timestamps, dt, accel
+    else:
+        return timestamps, dt
+
+
+
