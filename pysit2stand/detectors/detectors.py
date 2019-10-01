@@ -203,7 +203,7 @@ class Stillness:
 
         self.tq = trans_quant
 
-    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks):
         """
         Apply the stillness-based STS detection to the given data
 
@@ -221,10 +221,6 @@ class Stillness:
             Sampling time difference
         power_peaks : numpy.ndarray
             Locations of the peaks in the CWT power data.
-        cwt_coefs : numpy.ndarray
-            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
-        cwt_freqs : numpy.ndarray
-            (M, ) array of frequencies from the CWT
 
         Returns
         -------
@@ -435,7 +431,7 @@ class Displacement:
 
         self.tq = trans_quant
 
-    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks, cwt_coefs, cwt_freqs):
+    def apply(self, raw_acc, mag_acc, mag_acc_r, time, dt, power_peaks):
         """
         Apply the displacement-based STS detection to the given data
 
@@ -453,10 +449,6 @@ class Displacement:
             Sampling time difference
         power_peaks : numpy.ndarray
             Locations of the peaks in the CWT power data.
-        cwt_coefs : numpy.ndarray
-            (M, N) array of coefficients for the CWT, where M is the number of scales used in the computation.
-        cwt_freqs : numpy.ndarray
-            (M, ) array of frequencies from the CWT
 
         Returns
         -------
