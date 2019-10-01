@@ -15,7 +15,7 @@ from pysit2stand.utility import mov_stats
 
 
 class AccelerationFilter:
-    def __init__(self, continuous_wavelet='gaus1', power_band=[0, 0.5], power_peak_kw=None, power_std_height=True,
+    def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw=None, power_std_height=True,
                  reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5, window=0.25,
                  discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
         """
@@ -58,6 +58,8 @@ class AccelerationFilter:
             Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
             'moving average'.
         """
+        if power_band is None:
+            power_band = [0, 0.5]
         self.cwave = continuous_wavelet
         if isinstance(power_band, (int, float)):
             self.power_start_f = 0
