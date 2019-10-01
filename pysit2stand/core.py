@@ -4,14 +4,13 @@ Wavelet based methods of detecting postural transitions
 Lukas Adamowicz
 June 2019
 """
-from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64, where, insert, append, array_split, \
-    concatenate
+from numpy import mean, diff, arange, logical_and, sum as npsum, std, timedelta64, where, insert, append, array_split
 from scipy.signal import find_peaks
 from pandas import to_datetime
 import pywt
 from multiprocessing import cpu_count, Pool
 
-from pysit2stand.utility import AccFilter
+from pysit2stand.processing import AccFilter
 from pysit2stand import detectors
 
 
