@@ -77,7 +77,7 @@ class AccelerationFilter:
 
         self.method = reconstruction_method
 
-        self.lp_order = lowpass_order
+        self.lp_ord = lowpass_order
         self.lp_cut = lowpass_cutoff
 
         self.window = window
