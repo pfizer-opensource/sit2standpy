@@ -11,7 +11,7 @@ import pywt
 from multiprocessing import cpu_count, Pool
 
 from pysit2stand.processing import AccFilter, process_timestamps, AccelerationFilter
-from pysit2stand import detectors
+from pysit2stand import detectors, TransitionQuantifier
 
 
 class AutoSit2Stand:
@@ -223,16 +223,45 @@ class AutoSit2Stand:
 
 
 class Sit2Stand:
-    def __init__(self, window=False, hours=('08:00', '20:00'), continuous_wavelet='gaus1', power_band=[0, 0.5],
-                 power_peak_kwargs=None, power_stdev_height=True, reconstruction_method='moving average',
-                 lowpass_order=4, lowpass_cutoff=5, filter_window=0.25, discrete_wavelet='dmey',
-                 extension_mode='constant', reconstruction_level=1):
+    def __init__(self, method='stillness', gravity=9.81, thresholds=None, gravity_order=4, gravity_cut=0.8,
+                 long_still=0.5, still_window=0.3, duration_factor=10, displacement_factor=0.75, lmax_kwargs=None,
+                 lmin_kwargs=None, transition_quantifier=TransitionQuantifier(), window=False,
+                 hours=('08:00', '20:00'), continuous_wavelet='gaus1', power_band=[0, 0.5], power_peak_kwargs=None,
+                 power_stdev_height=True,  reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
+                 filter_window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
         """
         Class for storing information and parameters for the detection of sit-to-stand transitions, and extracting
         features to assess performance.
 
         Parameters
         ----------
+        method : {'stillness', 'displacement'}, optional
+            Method to use for detection, based on how strict the requirement for stillness before a transition is.
+            `stillness` requires that stillness preceeds a transition, whereas `displacement` only uses stillness
+            if possible.
+        gravity : float, optional
+            Gravitational acceleration. Default is 9.81 m/s^2.
+        thresholds : {None, dict}, optional
+            Thresholds for sit-to-stand detection. Default is None, which uses the default values. See Notes.
+        gravity_order : int, optional
+            Lowpass filter order for estimation of the direction of gravity. Default is 4.
+        gravity_cut : int, optional
+            Lowpass filter cutoff frequency for estimation of the direction of gravity. Default is 0.8Hz.
+        long_still : float, optional
+            Length of stillness required to determine a period of long stillness. Default is 0.5s
+        still_window : float, optional
+            Window, in seconds, for the determination of stillness. Default is 0.3.
+        duration_factor : float, optional
+            Factor for the duration of transitions. Larger values discard less transitions.
+        displacement_factor : float, optional
+            Factor multiplied by the median vertical displacement to determin the minimum vertical displacement
+            for a valid transition. Default is 0.75
+        lmax_kwargs : {None, dict}, optional
+            scipy.signal.find_peaks key-word arguments for detection of local maxima. Default is None.
+        lmin_kwargs : {None, dict}, optional
+            scipy.signal.find_peaks key-word arguments for detection of local minima. Default is None.
+        transition_quantifier : pysit2stand.TransitionQuantifier
+            Class for quantifing the transition.
         window : bool, optional
             Window the data based days, with each day a separate window. Default is False.
         hours : array_like, optional
@@ -277,6 +306,18 @@ class Sit2Stand:
         L. Adamowicz et al. "Sit-to-Stand Detection Using Only Lumbar Acceleration: Clinical and Home Application."
         Journal of Biomedical and Health Informatics. 2020.
         """
+        self._method = method
+        self._grav = gravity
+        self._ths = thresholds
+        self._grav_ord = gravity_order
+        self._grav_cut = gravity_cut
+        self._long_still = long_still
+        self._still_window = still_window
+        self._duration_factor = duration_factor
+        self._disp_factor = displacement_factor
+        self._lmax_kw = lmax_kwargs
+        self._lmin_kw = lmin_kwargs
+        self._tq = transition_quantifier
         self._window = window
         self._hours = hours
         self._cwave = continuous_wavelet
@@ -297,15 +338,22 @@ class Sit2Stand:
 
         Parameters
         ----------
-        accel
-        time
-        time_units
-        time_conv_kw
+        accel : numpy.ndarray
+            (N, 3) array of accelerations in m/s^2.
+        time : numpy.ndarray
+            (N, ) array of time values. If in unix timestamps, will be converted using the set `time_units` and
+            `time_conv_kw`.
+        time_units : str, optional
+            Units of the time provided. Default is 'us' for microseconds unix time.
+        time_conv_kw : {None, dict}, optional
+            pd.to_datetime additional optional key-word arguments. Default is None.
 
         Returns
         -------
-
+        sist : dict
+            Dictionary of sit-to-stand objects with attributes for the duration, and performance features.
         """
+        # convert timestamps and window if chosen
         if not self._window:
             timestamps, dt = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
                                                 window=self._window, hours=self._hours)
@@ -313,12 +361,35 @@ class Sit2Stand:
             timestamps, dt, accel = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
                                                        window=self._window, hours=self._hours)
 
+        # acceleration filter object
         acc_filt = AccelerationFilter(continuous_wavelet=self._cwave, power_band=self._pwr_band,
                                       power_peak_kw=self._pwr_pk_kw, power_std_height=self._pwr_std_h,
                                       reconstruction_method=self._recon_method, lowpass_order=self._lp_order,
                                       lowpass_cutoff=self._lp_cut, window=self._filt_window,
                                       discrete_wavelet=self._dwave, extension_mode=self._ext_mode,
                                       reconstruction_level=self._recon_level)
+
+        filt_accel, rec_accel, power, power_peaks = acc_filt.apply(accel, 1 / dt)  # run the filtering
+
+        # setup the STS detection
+        if self._method == 'stillness':
+            detect = detectors.Stillness(gravity=self._grav, thresholds=self._ths, gravity_pass_ord=self._grav_ord,
+                                         gravity_pass_cut=self._grav_cut, long_still=self._long_still,
+                                         moving_window=self._still_window, duration_factor=self._duration_factor,
+                                         displacement_factor=self._disp_factor, lmax_kwargs=self._lmax_kw,
+                                         lmin_kwargs=self._lmin_kw, trans_quant=self._tq)
+        elif self._method == 'displacement':
+            detect = detectors.Displacement(gravity=self._grav, thresholds=self._ths, gravity_pass_ord=self._grav_ord,
+                                            gravity_pass_cut=self._grav_cut, long_still=self._long_still,
+                                            moving_window=self._still_window, duration_factor=self._duration_factor,
+                                            displacement_factor=self._disp_factor, lmax_kwargs=self._lmax_kw,
+                                            lmin_kwargs=self._lmin_kw, trans_quant=self._tq)
+        else:
+            raise ValueError('Method must be set as `stillness` or `displacement`.')
+
+        sist = detect.apply(accel, filt_accel, rec_accel, timestamps, dt, power_peaks)
+
+        return sist
 
 
 class __Sit2Stand:
