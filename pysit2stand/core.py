@@ -10,7 +10,7 @@ from pandas import to_datetime
 import pywt
 from multiprocessing import cpu_count, Pool
 
-from pysit2stand.processing import AccFilter
+from pysit2stand.processing import AccFilter, process_timestamps, AccelerationFilter
 from pysit2stand import detectors
 
 
@@ -223,6 +223,105 @@ class AutoSit2Stand:
 
 
 class Sit2Stand:
+    def __init__(self, window=False, hours=('08:00', '20:00'), continuous_wavelet='gaus1', power_band=[0, 0.5],
+                 power_peak_kwargs=None, power_stdev_height=True, reconstruction_method='moving average',
+                 lowpass_order=4, lowpass_cutoff=5, filter_window=0.25, discrete_wavelet='dmey',
+                 extension_mode='constant', reconstruction_level=1):
+        """
+        Class for storing information and parameters for the detection of sit-to-stand transitions, and extracting
+        features to assess performance.
+
+        Parameters
+        ----------
+        window : bool, optional
+            Window the data based days, with each day a separate window. Default is False.
+        hours : array_like, optional
+            Hours to use from each day. Default is from 08:00 to 20:00 (tuple('08:00', '20:00')). Ignored if
+            `window` is False.
+        continuous_wavelet : str, optional
+            Continuous wavelet to use for the CWT used in deconstructing the acceleration signal to look for
+            STS locations. Default is 'gaus1'.
+        power_band : array_like, optional
+            Power band to sum, which gives the peaks and locations of possible sit-to-stand transitions. Default is
+            [0, 0.5]
+        power_peak_kwargs : {None, dict}, optional
+            scipy.signal.find_peaks additional key-word arguments to use when finding peaks in the CWT power band.
+            Default is None, though using a distance equal to the number of samples in 1 second is recommended.
+        power_stdev_height : bool, optional
+            Whether or not to use the standard deviation of the power signal as the minimum peak height. Default is
+            True.
+        reconstruction_method : {'moving average', 'dwt'}, optional
+            Reconstruction method to use for the reconstructed acceleration. Default is `moving average`.
+        lowpass_order : int, optional
+            Initial low-pass filtering order. Default is 4.
+        lowpass_cutoff : float, optional
+            Initial low-pass filtering cuttoff, in Hz. Default is 5Hz.
+        filter_window : float, optional
+            Window to use for moving average, in seconds. Default is 0.25s. Ignored if reconstruction_method is 'dwt'.
+        discrete_wavelet : str, optional
+            Discrete wavelet to use if reconstruction_method is 'dwt'. Default is 'dmey'. See
+            pywt.wavelist(kind='discrete') for a complete list of options. Ignored if reconstruction_method is
+            'moving average'.
+        extension_mode : str, optional
+            Signal extension mode to use in the DWT de- and re-construction of the signal. Default is 'constant', see
+            pywt.Modes.modes for a list of options. Ignored if reconstruction_method is 'moving average'.
+        reconstruction_level : int, optional
+            Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
+            'moving average'.
+
+        Attributes
+        ----------
+
+        References
+        ----------
+        L. Adamowicz et al. "Sit-to-Stand Detection Using Only Lumbar Acceleration: Clinical and Home Application."
+        Journal of Biomedical and Health Informatics. 2020.
+        """
+        self._window = window
+        self._hours = hours
+        self._cwave = continuous_wavelet
+        self._pwr_band = power_band
+        self._pwr_pk_kw = power_peak_kwargs
+        self._pwr_std_h = power_stdev_height
+        self._recon_method = reconstruction_method
+        self._lp_order = lowpass_order
+        self._lp_cut = lowpass_cutoff
+        self._filt_window = filter_window
+        self._dwave = discrete_wavelet
+        self._ext_mode = extension_mode
+        self._recon_level = reconstruction_level
+
+    def apply(self, accel, time, time_units='us', time_conv_kw=None):
+        """
+        Apply the sit-to-stand detection using the given parameters.
+
+        Parameters
+        ----------
+        accel
+        time
+        time_units
+        time_conv_kw
+
+        Returns
+        -------
+
+        """
+        if not self._window:
+            timestamps, dt = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
+                                                window=self._window, hours=self._hours)
+        else:
+            timestamps, dt, accel = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
+                                                       window=self._window, hours=self._hours)
+
+        acc_filt = AccelerationFilter(continuous_wavelet=self._cwave, power_band=self._pwr_band,
+                                      power_peak_kw=self._pwr_pk_kw, power_std_height=self._pwr_std_h,
+                                      reconstruction_method=self._recon_method, lowpass_order=self._lp_order,
+                                      lowpass_cutoff=self._lp_cut, window=self._filt_window,
+                                      discrete_wavelet=self._dwave, extension_mode=self._ext_mode,
+                                      reconstruction_level=self._recon_level)
+
+
+class __Sit2Stand:
     """
     Wavelet based detection of sit-to-stand transitions
 
