@@ -11,7 +11,8 @@ import pywt
 from multiprocessing import cpu_count, Pool
 
 from pysit2stand.processing import AccFilter, process_timestamps, AccelerationFilter
-from pysit2stand import detectors, TransitionQuantifier
+from pysit2stand import detectors
+from pysit2stand.quantify import TransitionQuantifier
 
 
 class AutoSit2Stand:
