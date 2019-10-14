@@ -237,8 +237,8 @@ class Stillness:
 
         # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
         # local minima, as this avoids some possible artefacts in the signal
-        acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
-        acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
+        # acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
+        # acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
 
         # compute an estimate of the direction of gravity, assumed to be the vertical direction
         gfc = butter(self.grav_ord, 2 * self.grav_cut * dt, btype='low')
@@ -261,13 +261,13 @@ class Stillness:
                     raise IndexError
             except IndexError:
                 continue
-            try:  # look for the following local min -> local max pattern
-                n_lmin = acc_lmin[acc_lmin > ppk][0]
-                n_lmax = acc_lmax[acc_lmax > n_lmin][0]
-                if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # ensure not too far ahead
-                    raise IndexError
-            except IndexError:
-                continue
+            # try:  # look for the following local min -> local max pattern
+            #     n_lmin = acc_lmin[acc_lmin > ppk][0]
+            #     # n_lmax = acc_lmax[acc_lmax > n_lmin][0]
+            #     # if (time[n_lmax] - time[ppk]).total_seconds() > 2:  # ensure not too far ahead
+            #     #     raise IndexError
+            # except IndexError:
+            #     continue
             try:  # look for the next start of long stillness
                 start_still = lstill_starts[lstill_starts > ppk][0]
                 if (time[start_still] - time[ppk]).total_seconds() < 30:
@@ -465,8 +465,8 @@ class Displacement:
 
         # find the local minima and maxima in the acceleration signals. Use the reconstructed acceleration for
         # local minima, as this avoids some possible artefacts in the signal
-        acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
-        acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
+        # acc_lmax, _ = find_peaks(mag_acc, **self.lmax_kw)
+        # acc_lmin, _ = find_peaks(-mag_acc_r, **self.lmin_kw)
 
         # compute an estimate of the direction of gravity, assumed to be the vertical direction
         gfc = butter(self.grav_ord, 2 * self.grav_cut * dt, btype='low')
