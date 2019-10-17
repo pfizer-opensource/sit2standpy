@@ -299,7 +299,7 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
     timestamps = to_datetime(times, **conv_kw)
 
     # find the sampling time
-    dt = mean(diff(timestamps)) / timedelta64(1, 's')  # convert to seconds
+    dt = mean(diff(timestamps[:100])) / timedelta64(1, 's')  # convert to seconds
 
     # windowing
     if window:
