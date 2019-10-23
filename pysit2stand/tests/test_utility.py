@@ -4,16 +4,24 @@ from numpy import isclose, allclose, array
 from pysit2stand.utility import Transition, mov_stats
 
 
-def test_transition_representations(start_t1, end_t1):
-    trans = Transition((start_t1, end_t1), t_type='SiSt')
+@pytest.mark.parametrize(('start_time', 'end_time', 'ttype', 'long_type', 'duration'), (
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 + 1e3, unit='ms'), 'SiSt', 'Sit to Stand', 1.),
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 + 1e3, unit='ms'), 'StSi', 'Stand to Sit', 1.)))
+def test_transition_representations(start_time, end_time, ttype, long_type, duration):
+    trans = Transition((start_time, end_time), t_type=ttype)
 
     assert str(trans) == 'Postural Transition'
-    assert repr(trans) == 'Sit to Stand (Duration: 1.00)'
+    assert repr(trans) == f'{long_type} (Duration: {duration:.2f})'
 
 
 def test_transition_input_errors(start_t1, end_t1):
     with pytest.raises(ValueError) as e_info:
         Transition({'start': start_t1, 'end': end_t1})
+
+
+def test_transition_type(start_t1, end_t1):
+    with pytest.raises(ValueError) as e_info:
+        Transition((start_t1, end_t1), t_type='Sit to stand')
 
 
 @pytest.mark.parametrize(('start_time', 'stop_time'), (
