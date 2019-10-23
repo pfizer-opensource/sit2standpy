@@ -70,13 +70,17 @@ class Transition:
 
     def __init__(self, times, t_type='SiSt', v_displacement=None, max_v_velocity=None, min_v_velocity=None,
                  max_acceleration=None, min_acceleration=None, sparc=None):
-        self.times = times
+        if times[1] < times[0]:
+            raise ValueError('End time cannot be before start time.')
         if isinstance(times, (tuple, list, ndarray)):
             self.start_time = times[0]
             self.end_time = times[1]
             self.duration = (self.end_time - self.start_time).total_seconds()
         else:
             raise ValueError('times must be a tuple or a list-like.')
+
+        if self.duration > 15:
+            raise ValueError('Transitions should not be longer than 15s.')
 
         self.ttype = t_type
         if self.ttype == 'SiSt':
