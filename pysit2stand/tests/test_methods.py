@@ -9,7 +9,7 @@ else:
 
 
 # UTILITY
-def test_mov_stats():
+def _test_mov_stats():
     x = array([0, 1, 2, 3, 4, 5])
 
     mn, sd, pad = s2s.utility.mov_stats(x, 3)
@@ -19,7 +19,7 @@ def test_mov_stats():
     assert pad == 2
 
 
-def test_transition():
+def _test_transition():
     t1 = to_datetime(1567616049649, unit='ms')
     t2 = to_datetime(1567616049649 + 1e3, unit='ms')
 
@@ -28,7 +28,7 @@ def test_transition():
     assert trans.duration == 1.
 
 
-def test_stillness():
+def _test_stillness():
     if version_info < (3, 7):
         file_path = pkr.resource_filename('pysit2stand.data', 'sample.csv')
         data = loadtxt(file_path, delimiter=',')
@@ -58,7 +58,7 @@ def test_stillness():
     assert allclose(array([SiSt[i].duration for i in SiSt]), array([1.413972, 1.64052, 1.67958]), atol=1e-3)
 
 
-def test_displacement():
+def _test_displacement():
     if version_info < (3, 7):
         file_path = pkr.resource_filename('pysit2stand.data', 'sample.csv')
         data = loadtxt(file_path, delimiter=',')
