@@ -1,6 +1,6 @@
 import pytest
 from pandas import to_datetime
-from numpy import isclose, allclose, array
+from numpy import isclose, allclose, array, ones
 from pysit2stand.utility import Transition, mov_stats
 
 
@@ -41,7 +41,8 @@ def test_transition_duration(start_time, stop_time, duration):
          array([2.2, 2.2, 2.2, 2.2, 2.8, 3.4, 4.0, 5.0, 5.6, 5.8, 5.6, 5.4, 5.0, 4.6, 4.8, 5.4, 6.0, 6.8, 5.4]),
          array([0.83666003, 0.83666003, 0.83666003, 0.83666003, 0.83666003, 1.14017543, 1.58113883, 1.58113883,
                 1.14017543, 0.83666003, 1.14017543, 1.14017543, 0.70710678, 0.54772256, 0.83666003, 1.14017543,
-                1.58113883, 1.92353841, 1.14017543]), 3),))
+                1.58113883, 1.92353841, 1.14017543]), 3),
+        (array([1, 2, 3, 4, 5]), 1, array([1.5, 1.5, 2.5, 3.5, 4.5]), 0.70710678 * ones(5), 1)))
 def test_mov_stats(x, win, mn, sd, pad):
     mean, st_dev, n_pad = mov_stats(x, win)
 
