@@ -17,6 +17,8 @@ def test_transition_representations(start_time, end_time, ttype, long_type, dura
 def test_transition_input_errors(start_t1, end_t1):
     with pytest.raises(ValueError) as e_info:
         Transition({'start': start_t1, 'end': end_t1})
+    with pytest.raises(ValueError) as e_info:
+        Transition((start_t1, end_t1), t_type='Sit to Stand')
 
 
 @pytest.mark.parametrize(('start_time', 'stop_time'), (
