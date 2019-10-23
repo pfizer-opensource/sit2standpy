@@ -22,16 +22,16 @@ def test_transition_input_errors(start_t1, end_t1):
 
 
 @pytest.mark.parametrize(('start_time', 'stop_time'), (
-        (to_datetime(1567616049649, unit='ms'), to_datetime(1567616049649 - 1e3, unit='ms')),
-        (to_datetime(1567616049649, unit='ms'), to_datetime(1567616049649 + 20e3, unit='ms'))))
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 - 1e3, unit='ms')),
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 + 20e3, unit='ms'))))
 def test_transition_time_errors(start_time, stop_time):
     with pytest.raises(ValueError) as e_info:
         Transition((start_time, stop_time))
 
 
 @pytest.mark.parametrize(('start_time', 'stop_time', 'duration'), (
-        (to_datetime(1567616049649, unit='ms'), to_datetime(1567616049649 + 1e3, unit='ms'), 1.0),
-        (to_datetime(1567616049649, unit='ms'), to_datetime(1567616049649 + 3437.132, unit='ms'), 3.437132)))
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 + 1e3, unit='ms'), 1.0),
+        (to_datetime(1.5e12, unit='ms'), to_datetime(1.5e12 + 3437.132, unit='ms'), 3.437132)))
 def test_transition_duration(start_time, stop_time, duration):
     trans = Transition((start_time, stop_time))
 
