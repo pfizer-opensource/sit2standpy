@@ -1,5 +1,5 @@
 import pytest
-from numpy import isclose, allclose, array
+from numpy import isclose, allclose
 from pysit2stand.processing import AccelerationFilter, process_timestamps
 
 
