@@ -1,7 +1,6 @@
 import pytest
 from pandas import to_datetime
 from numpy import loadtxt
-from numpy.linalg import norm
 from importlib import resources
 
 
@@ -19,7 +18,7 @@ def end_t1():
 def raw_accel():
     # pull sample data
     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
-        acc = loadtxt(file_path, delimiter=',', usecols=(1, 2, 3))
+        acc = loadtxt(file_path, dtype=float, delimiter=',', usecols=(1, 2, 3))
 
     return acc
 
@@ -28,7 +27,7 @@ def raw_accel():
 def filt_accel():
     # pull the filtered data
     with resources.path('pysit2stand.data', '.filter_result.csv') as file_path:
-        filt_accel = loadtxt(file_path, delimiter=',', usecols=0)
+        filt_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=0)
 
     return filt_accel
 
@@ -37,7 +36,7 @@ def filt_accel():
 def rm_accel():
     # pull the rolling mean acceleration
     with resources.path('pysit2stand.data', '.filter_result.csv') as file_path:
-        rm_accel = loadtxt(file_path, delimiter=',', usecols=1)
+        rm_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=1)
 
     return rm_accel
 
@@ -46,6 +45,17 @@ def rm_accel():
 def power():
     # pull the power measure
     with resources.path('pysit2stand.data', '.filter_result.csv') as file_path:
-        power = loadtxt(file_path, delimiter=',', usecols=2)
+        power = loadtxt(file_path, dtype=float, delimiter=',', usecols=2)
 
     return power
+
+
+@pytest.fixture
+def power_peaks():
+    # pull the power peaks
+    with resources.path('pysit2stand.data', '.filter_result.csv') as file_path:
+        power_peaks = loadtxt(file_path, dtype=int, delimiter=',', usecols=3)
+
+    power_peaks = power_peaks[power_peaks != -1]  # remove filler values
+
+    return power_peaks
