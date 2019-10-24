@@ -1,5 +1,6 @@
 import pytest
 from numpy import allclose
+from pandas import to_datetime
 
 from pysit2stand.detectors.detectors import _get_still, _integrate_acc, Stillness, Displacement
 
@@ -20,3 +21,41 @@ def test_integrate_acc(integrate_data):
 
     assert allclose(vel, integrate_data[1], atol=5e-3)  # fairly loose tolerance due to drift, etc
     assert allclose(pos, integrate_data[2], atol=2e-2)
+
+
+def test_stillness_detection(raw_accel, time, filt_accel_rm, rm_accel_rm, power_peaks_rm, still_times,
+                             still_durations, still_max_acc, still_min_acc, still_sparc):
+    timestamps = to_datetime(time, unit='us')
+
+    sts = Stillness().apply(raw_accel, filt_accel_rm, rm_accel_rm, timestamps, 1/128, power_peaks_rm)
+
+    times = [to_datetime(key).timestamp() * 1e6 for key in sts]
+    durations = [sts[key].duration for key in sts]
+    max_acc = [sts[key].max_acceleration for key in sts]
+    min_acc = [sts[key].min_acceleration for key in sts]
+    sparc = [sts[key].sparc for key in sts]
+
+    assert allclose(times, still_times)
+    assert allclose(durations, still_durations)
+    assert allclose(max_acc, still_max_acc)
+    assert allclose(min_acc, still_min_acc)
+    assert allclose(sparc, still_sparc)
+
+
+def test_displacement_detection(raw_accel, time, filt_accel_rm, rm_accel_rm, power_peaks_rm, disp_times,
+                                disp_durations, disp_max_acc, disp_min_acc, disp_sparc):
+    timestamps = to_datetime(time, unit='us')
+
+    sts = Displacement().apply(raw_accel, filt_accel_rm, rm_accel_rm, timestamps, 1/128, power_peaks_rm)
+
+    times = [to_datetime(key).timestamp() * 1e6 for key in sts]
+    durations = [sts[key].duration for key in sts]
+    max_acc = [sts[key].max_acceleration for key in sts]
+    min_acc = [sts[key].min_acceleration for key in sts]
+    sparc = [sts[key].sparc for key in sts]
+
+    assert allclose(times, disp_times)
+    assert allclose(durations, disp_durations)
+    assert allclose(max_acc, disp_max_acc)
+    assert allclose(min_acc, disp_min_acc)
+    assert allclose(sparc, disp_sparc)

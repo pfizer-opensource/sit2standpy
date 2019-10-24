@@ -40,6 +40,102 @@ def still_stops():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
     with h5py.File(file_name, 'r') as file:
-        stops = file['starts'][()]
+        stops = file['stops'][()]
 
     return stops
+
+
+# -------------------------------------------------------------------------------------------------
+#                               STILLNESS DETECTION DATA
+# -------------------------------------------------------------------------------------------------
+@fixture
+def still_times():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Stillness']['times'][()]
+    return res
+
+
+@fixture
+def still_durations():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Stillness']['durations'][()]
+    return res
+
+
+@fixture
+def still_max_acc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Stillness']['max_acc'][()]
+    return res
+
+
+@fixture
+def still_min_acc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Stillness']['min_acc'][()]
+    return res
+
+
+@fixture
+def still_sparc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Stillness']['sparc'][()]
+    return res
+
+
+# -------------------------------------------------------------------------------------------------
+#                               DISPLACEMENT DETECTION DATA
+# -------------------------------------------------------------------------------------------------
+@fixture
+def disp_times():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Displacement']['times'][()]
+    return res
+
+
+@fixture
+def disp_durations():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Displacement']['durations'][()]
+    return res
+
+
+@fixture
+def disp_max_acc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Displacement']['max_acc'][()]
+    return res
+
+
+@fixture
+def disp_min_acc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Displacement']['min_acc'][()]
+    return res
+
+
+@fixture
+def disp_sparc():
+    file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
+                '.detector_results.h5'
+    with h5py.File(file_name, 'r') as file:
+        res = file['Displacement']['sparc'][()]
+    return res
