@@ -10,6 +10,7 @@ from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
 from pandas import to_datetime
+from warnings import warn
 
 from pysit2stand.utility import mov_stats
 
@@ -123,7 +124,8 @@ class AccelerationFilter:
 
             # set all but the desired level of coefficients to be 0s
             if (len(coefs) - self.recon_level) < 1:
-                print(f'Chosen reconstruction level is too high, setting reconstruction level to {len(coefs) - 1}')
+                warn(UserWarning(f'Chosen reconstruction level is too high, '
+                                 f'setting reconstruction level to {len(coefs) - 1}'))
                 ind = 1
             else:
                 ind = len(coefs) - self.recon_level
