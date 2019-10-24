@@ -14,6 +14,9 @@ def end_t1():
     return to_datetime(1567616049649 + 1e3, unit='ms')
 
 
+# -------------------------------------------------------------------------------------------------
+#                               RAW DATA
+# -------------------------------------------------------------------------------------------------
 @pytest.fixture
 def raw_accel():
     # pull sample data
@@ -32,6 +35,9 @@ def time():
     return time
 
 
+# -------------------------------------------------------------------------------------------------
+#                               ROLLING MEAN FILTERED DATA
+# -------------------------------------------------------------------------------------------------
 @pytest.fixture
 def filt_accel_rm():
     # pull the filtered data
@@ -70,6 +76,50 @@ def power_peaks_rm():
     return power_peaks
 
 
+# -------------------------------------------------------------------------------------------------
+#                               DWT RECONSTRUCTED FILTERED DATA
+# -------------------------------------------------------------------------------------------------
+@pytest.fixture
+def filt_accel_dwt():
+    # pull the filtered data
+    with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
+        filt_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=0)
+
+    return filt_accel
+
+
+@pytest.fixture
+def rec_accel_dwt():
+    # pull the rolling mean acceleration
+    with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
+        rm_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=1)
+
+    return rm_accel
+
+
+@pytest.fixture
+def power_dwt():
+    # pull the power measure
+    with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
+        power = loadtxt(file_path, dtype=float, delimiter=',', usecols=2)
+
+    return power
+
+
+@pytest.fixture
+def power_peaks_dwt():
+    # pull the power peaks
+    with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
+        power_peaks = loadtxt(file_path, dtype=int, delimiter=',', usecols=3)
+
+    power_peaks = power_peaks[power_peaks != -1]  # remove filler values
+
+    return power_peaks
+
+
+# -------------------------------------------------------------------------------------------------
+#                               GENERATED TIMESTAMP DATA
+# -------------------------------------------------------------------------------------------------
 @pytest.fixture
 def overnight_time_accel():
     # generate some time that spans overnight, to testing windowing
