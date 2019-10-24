@@ -158,7 +158,7 @@ class AccelerationFilter:
         return macc_f, macc_r[:macc_f.size], power, power_peaks
 
 
-class AccFilter:
+class __AccFilter:
     """
     Object for filtering and reconstructing raw acceleration data
 
