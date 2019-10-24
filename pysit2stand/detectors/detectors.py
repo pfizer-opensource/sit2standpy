@@ -565,6 +565,7 @@ class Displacement:
         return sts
 
 
+'''
 class __Similarity:
     """
     Sit-to-stand (STS) detection based on similarity of summed coefficients of the Continuous Wavelet Transform
@@ -731,3 +732,4 @@ class __Similarity:
                                                min_acceleration=a_min)
 
         return sts
+'''
