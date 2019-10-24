@@ -21,8 +21,8 @@ def test_pywt():
 
 def test_pysit2stand():
     import pysit2stand
-    from pysit2stand import Sit2Stand, AutoSit2Stand, detectors, mov_stats, Transition, TransitionQuantifier, \
-        AccelerationFilter, AccFilter, process_timestamps, __version__
+    from pysit2stand import Sit2Stand, detectors, mov_stats, Transition, TransitionQuantifier, \
+        AccelerationFilter, process_timestamps, __version__
     from pysit2stand.detectors import Stillness, Displacement
 
     return
