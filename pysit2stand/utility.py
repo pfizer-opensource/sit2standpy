@@ -4,11 +4,8 @@ Common methods for both acceleration only and imu-based postural transition dete
 Lukas Adamowicz
 June 2019
 """
-from numpy import around, ndarray, zeros, mean, std, ceil
-from numpy.linalg import norm
+from numpy import ndarray, zeros, mean, std, ceil
 from numpy.lib import stride_tricks
-from scipy.signal import butter, filtfilt
-import pywt
 
 
 class Transition:
