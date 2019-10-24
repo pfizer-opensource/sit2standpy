@@ -99,7 +99,7 @@ class TransitionQuantifier:
 
         References
         ----------
-        S. Balasubramanian, A. Melendez-Calderon, A. Roby-Brami, E. Burdet. ``On the analysis of movement smoothness.''
+        S. Balasubramanian, A. Melendez-Calderon, A. Roby-Brami, E. Burdet. "On the analysis of movement smoothness."
         Journal of NeuroEngineering and Rehabilitation. 2015.
         """
         # number of zeros to be padded

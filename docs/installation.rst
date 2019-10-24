@@ -6,12 +6,13 @@ Installation, Requirements, and Testing
 Installation
 ------------
 
-PySit2Stand can be installed by running the following in the terminal:
+PySit2Stand can be installed by running any of the following in the terminal:
 
 ::
 
     pip install pysit2stand  # install checking for dependencies with pip
     pip install pysit2stand --no-deps  # install without checking for dependencies
+    pip install git+https://github.com/PfizerRD/pysit2stand  # alternative to pull from the master branch
 
 
 Requirements
@@ -35,6 +36,7 @@ Testing
 
 Automated tests can be run with ``pytest`` through the terminal:
 
-```shell script
-pytest --pyargs pysit2stand.tests -v
-```
+::
+
+    pytest --pyargs pysit2stand.tests -v
+
