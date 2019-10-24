@@ -56,9 +56,10 @@ class TestProcessTimestamps:
     def test_window(self, overnight_time_accel, windowed_timestamps):
         timestamps, dt, accel = process_timestamps(overnight_time_accel[0], overnight_time_accel[1], time_units='ns',
                                                    conv_kw={}, window=True, hours=('08:00', '20:00'))
-        assert timestamps.size == 10
-        assert all(timestamps == windowed_timestamps)
-        assert accel.size == 10
+        assert isinstance(timestamps, dict)
+        assert all([all(timestamps[key] == windowed_timestamps[key]) for key in timestamps])
+        assert isinstance(accel, dict)
+        assert all([key in accel for key in ['Day 1', 'Day 2']])
         assert isclose(dt, 3600.0)
 
     def test_no_window(self, timestamps_time_accel):
