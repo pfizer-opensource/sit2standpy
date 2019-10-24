@@ -17,6 +17,11 @@ class TestAccelerationFilter:
         assert isclose(af.power_start_f, 0.0)
         assert isclose(af.power_end_f, 0.8)
 
+    def test_warning(self, raw_accel):
+        af = AccelerationFilter(reconstruction_method='dwt', reconstruction_level=15)
+        with pytest.warns(UserWarning) as w_info:
+            af.apply(raw_accel, 128)
+
     def test_rm(self, raw_accel, filt_accel_rm, rm_accel_rm, power_rm, power_peaks_rm):
         af = AccelerationFilter(continuous_wavelet='gaus1', power_band=[0, 0.5], power_peak_kw={'distance': 128},
                                 power_std_height=True, reconstruction_method='moving average', lowpass_order=4,
