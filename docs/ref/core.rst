@@ -1,24 +1,9 @@
 .. pysit2stand core functions and classes
 .. currentmodule:: pysit2stand
 
-=======================================
-Core Functions
-=======================================
+pysit2stand
+-----------
 
-Automated framework
--------------------
+.. toctree::
 
-.. autoclass:: pysit2stand.AutoSit2Stand
-  :members:
-
-Base framework
---------------
-
-.. autoclass:: pysit2stand.Sit2Stand
-   :members:
-
-Acceleration Filter
--------------------
-
-.. autoclass:: pysit2stand.AccFilter
-   :members:
+    core.Sit2Stand
