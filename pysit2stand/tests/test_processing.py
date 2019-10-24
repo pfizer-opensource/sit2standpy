@@ -29,7 +29,18 @@ class TestAccelerationFilter:
         assert allclose(power_rm, pwr)
         assert allclose(power_peaks_rm, pwr_pk)
 
-    def test_dwt(self, raw_accel, filt_accel, rec_accel, power, power_peaks):
+    def test_dwt(self, raw_accel, filt_accel_dwt, rec_accel_dwt, power_dwt, power_peaks_dwt):
+        af = AccelerationFilter(continuous_wavelet='gaus1', power_band=[0, 0.5], power_peak_kw={'distance': 128},
+                                power_std_height=True, reconstruction_method='dwt', lowpass_order=4,
+                                lowpass_cutoff=5, discrete_wavelet='dmey', extension_mode='constant',
+                                reconstruction_level=1)
+
+        f_acc, rm_acc, pwr, pwr_pk = af.apply(raw_accel, 128)
+
+        assert allclose(filt_accel_dwt, f_acc)
+        assert allclose(rec_accel_dwt, rm_acc)
+        assert allclose(power_dwt, pwr)
+        assert allclose(power_peaks_dwt, pwr_pk)
 
 
 class TestProcessTimestamps:
