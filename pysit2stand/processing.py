@@ -5,7 +5,7 @@ Lukas Adamowicz
 Pfizer
 2019
 """
-from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std
+from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std, argwhere, append, insert
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
@@ -188,15 +188,15 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
 
     Returns
     -------
-    timestamps : {pandas.DatetimeIndex, pandas.Series}
+    timestamps : {pandas.DatetimeIndex, pandas.Series, dict}
         Array_like of timestamps. DatetimeIndex if times was a numpy.ndarray, or list. pandas.Series with a dtype of
-        'datetime64' if times was a pandas.Series. If `window` is set to True, these are the timestamps falling between
-        the hours selected.
+        'datetime64' if times was a pandas.Series. If `window` is set to True, then a dictionary of timestamps for
+        each day is returned.
     dt : float
         Sampling time in seconds.
-    accel : {numpy.ndarray, pd.Series}, optional
-        Acceleration windowed the same way as the timestamps, if `window` is True. If `window` is False, then the
-        acceleration is not returned.
+    accel : {numpy.ndarray, pd.Series, dict}, optional
+        Acceleration windowed the same way as the timestamps (dictionary of acceleration for each day), if `window` is
+        True. If `window` is False, then the acceleration is not returned.
     """
     if conv_kw is not None:
         if time_units is not None:
@@ -217,10 +217,17 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
     if window:
         hour_inds = timestamps.indexer_between_time(hours[0], hours[1])
 
-        timestamps = timestamps[hour_inds]
-        accel = accel[hour_inds]
+        day_splits = argwhere(diff(hour_inds) > 1) + 1
+        day_splits = append(insert(day_splits, 0, 0), hour_inds.size)
 
-        return timestamps, dt, accel
+        timestamps_ = {}
+        accel_ = {}
+
+        for i in range(len(day_splits) - 1):
+            timestamps_[f'Day {i + 1}'] = timestamps[day_splits[i]: day_splits[i + 1]]
+            accel_[f'Daay {i + 1}'] = accel[day_splits[i]: day_splits[i + 1]]
+
+        return timestamps_, dt, accel_
     else:
         return timestamps, dt
 
