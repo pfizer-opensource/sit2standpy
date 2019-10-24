@@ -1,23 +1,12 @@
-import pytest
-from pandas import to_datetime, date_range
-from numpy import loadtxt, random
+from pytest import fixture
 from importlib import resources
-
-
-@pytest.fixture
-def start_t1():
-    return to_datetime(1567616049649, unit='ms')
-
-
-@pytest.fixture
-def end_t1():
-    return to_datetime(1567616049649 + 1e3, unit='ms')
-
+from numpy import loadtxt, random
+from pandas import date_range, to_datetime
 
 # -------------------------------------------------------------------------------------------------
 #                               RAW DATA
 # -------------------------------------------------------------------------------------------------
-@pytest.fixture
+@fixture
 def raw_accel():
     # pull sample data
     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
@@ -26,7 +15,7 @@ def raw_accel():
     return acc
 
 
-@pytest.fixture
+@fixture
 def time():
     # pull sample time data
     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
@@ -38,7 +27,7 @@ def time():
 # -------------------------------------------------------------------------------------------------
 #                               ROLLING MEAN FILTERED DATA
 # -------------------------------------------------------------------------------------------------
-@pytest.fixture
+@fixture
 def filt_accel_rm():
     # pull the filtered data
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -47,7 +36,7 @@ def filt_accel_rm():
     return filt_accel
 
 
-@pytest.fixture
+@fixture
 def rm_accel_rm():
     # pull the rolling mean acceleration
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -56,7 +45,7 @@ def rm_accel_rm():
     return rm_accel
 
 
-@pytest.fixture
+@fixture
 def power_rm():
     # pull the power measure
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -65,7 +54,7 @@ def power_rm():
     return power
 
 
-@pytest.fixture
+@fixture
 def power_peaks_rm():
     # pull the power peaks
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -79,7 +68,7 @@ def power_peaks_rm():
 # -------------------------------------------------------------------------------------------------
 #                               DWT RECONSTRUCTED FILTERED DATA
 # -------------------------------------------------------------------------------------------------
-@pytest.fixture
+@fixture
 def filt_accel_dwt():
     # pull the filtered data
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -88,7 +77,7 @@ def filt_accel_dwt():
     return filt_accel
 
 
-@pytest.fixture
+@fixture
 def rec_accel_dwt():
     # pull the rolling mean acceleration
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -97,7 +86,7 @@ def rec_accel_dwt():
     return rm_accel
 
 
-@pytest.fixture
+@fixture
 def power_dwt():
     # pull the power measure
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -106,7 +95,7 @@ def power_dwt():
     return power
 
 
-@pytest.fixture
+@fixture
 def power_peaks_dwt():
     # pull the power peaks
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -120,7 +109,7 @@ def power_peaks_dwt():
 # -------------------------------------------------------------------------------------------------
 #                               GENERATED TIMESTAMP DATA
 # -------------------------------------------------------------------------------------------------
-@pytest.fixture
+@fixture
 def overnight_time_accel():
     # generate some time that spans overnight, to testing windowing
     ts = date_range(start='2019-10-10 16:00', end='2019-10-11 12:00', freq='1H').astype(int)
@@ -130,7 +119,7 @@ def overnight_time_accel():
     return ts, acc
 
 
-@pytest.fixture
+@fixture
 def windowed_timestamps():
     ts = to_datetime(['2019-10-10 16:00:00', '2019-10-10 17:00:00', '2019-10-10 18:00:00', '2019-10-10 19:00:00',
                       '2019-10-10 20:00:00', '2019-10-11 08:00:00', '2019-10-11 09:00:00', '2019-10-11 10:00:00',
@@ -138,7 +127,7 @@ def windowed_timestamps():
     return ts
 
 
-@pytest.fixture
+@fixture
 def timestamps_time_accel():
     ts = date_range(start='2019-10-10 16:00', end='2019-10-10 16:02', freq='0.05S')
     time = ts.astype(int)
