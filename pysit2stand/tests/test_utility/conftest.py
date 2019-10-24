@@ -1,7 +1,5 @@
 import pytest
-from pandas import to_datetime, date_range
-from numpy import loadtxt, random
-from importlib import resources
+from pandas import to_datetime
 
 
 @pytest.fixture
