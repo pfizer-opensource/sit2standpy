@@ -224,8 +224,8 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
         accel_ = {}
 
         for i in range(len(day_splits) - 1):
-            timestamps_[f'Day {i + 1}'] = timestamps[day_splits[i]: day_splits[i + 1]]
-            accel_[f'Daay {i + 1}'] = accel[day_splits[i]: day_splits[i + 1]]
+            timestamps_[f'Day {i + 1}'] = timestamps[hour_inds][day_splits[i]: day_splits[i + 1]]
+            accel_[f'Day {i + 1}'] = accel[hour_inds][day_splits[i]: day_splits[i + 1]]
 
         return timestamps_, dt, accel_
     else:
