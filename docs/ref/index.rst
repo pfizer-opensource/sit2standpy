@@ -8,5 +8,3 @@ API Reference
 
   core
   detectors
-  transitions
-  misc

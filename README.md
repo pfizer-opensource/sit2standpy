@@ -21,6 +21,11 @@ installation instructions, and usage examples.
 
 These are the versions developed on, and some backwards compatability may be possible.
 
+To run the tests, additionally the following are needed
+
+- pytest
+- h5py
+
 ## Installation
 
 Run in the command line/terminal:
@@ -41,7 +46,7 @@ pip install pysit2stand --no-deps
 Automated tests can be run with ``pytest`` through the terminal:
 
 ```shell script
-pytest --pyargs pysit2stand.tests
+pytest --pyargs pysit2stand.tests -v
 ```
 
 ## Usage
@@ -70,12 +75,14 @@ time = data[:, 0]
 accel = data[:, 1:]
 
 # initialize the framework for detection
-asts = s2s.AutoSit2Stand(accel, time, time_units='us', window=False, hours=('08:00', '20:00'), parallel=False, 
-                         parallel_cpu='max', continuous_wavelet='gaus1', peak_pwr_band=[0.0, 0.5], 
-                         peak_pwr_par=None, std_height=True, verbose=True)
+ths = {'stand displacement': 0.125, 'transition velocity': 0.3, 'accel moving avg': 0.15,
+                   'accel moving std': 0.1, 'jerk moving avg': 2.5, 'jerk moving std': 3}
+sts = s2s.Sit2Stand(method='stillness', gravity=9.84, thresholds=ths, long_still=0.3, still_window=0.3, 
+                    duration_factor=4, displacement_factor=0.6, lmin_kwargs={'height': -9.5}, power_band=[0, 0.5],
+                    power_peak_kwargs={'distance': 128}, power_stdev_height=True)
 
 # run the sit-to-stand detection
-SiSt = asts.run(acc_filter_kwargs=None, detector='stillness', detector_kwargs=None)
+SiSt = sts.apply(accel, time, time_units='us')
 
 # print the list of Transition objects, stored as a dictionary with the time they occurred
 print(SiSt)
@@ -83,6 +90,5 @@ print(SiSt)
 
 `sit_to_stands` is then a dictionary of `Transition` objects containing information about each of the transitions 
 detected
-
 
 

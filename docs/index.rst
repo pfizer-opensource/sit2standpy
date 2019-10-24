@@ -35,8 +35,8 @@ PySit2Stand is open source software distributed under the MIT license.
 Papers
 ------
 
-.. [1] L. Adamowicz, I. Karahonoglu, S. Patel. ``Sit-to-Stand Detection Using Only Lumbar Acceleration: Clinical and Home Application.'' In-preparation.
-.. [2] L. Adamowicz. ``PySit2Stand: Python package for Sit-to-Stand transition detection and quantification.'' Journal of Open Source Software. In-preparation.
+.. [1] L. Adamowicz, I. Karahonoglu, S. Patel. "Sit-to-Stand Detection Using Only Lumbar Acceleration: Clinical and Home Application.'' In-preparation.
+.. [2] L. Adamowicz, S. Patel. "PySit2Stand: Python package for Sit-to-Stand transition detection and quantification.'' Journal of Open Source Software. In-preparation.
 
 
 Contents
