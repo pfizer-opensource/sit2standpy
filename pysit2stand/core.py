@@ -360,8 +360,8 @@ class Sit2Stand:
             timestamps, dt = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
                                                 window=self._window, hours=self._hours)
         else:
-            timestamps, dt, accel = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
-                                                       window=self._window, hours=self._hours)
+            timestamps, dt, acc_win = process_timestamps(time, accel, time_units=time_units, conv_kw=time_conv_kw,
+                                                         window=self._window, hours=self._hours)
 
         # acceleration filter object
         acc_filt = AccelerationFilter(continuous_wavelet=self._cwave, power_band=self._pwr_band,
@@ -371,7 +371,12 @@ class Sit2Stand:
                                       discrete_wavelet=self._dwave, extension_mode=self._ext_mode,
                                       reconstruction_level=self._recon_level)
 
-        filt_accel, rec_accel, power, power_peaks = acc_filt.apply(accel, 1 / dt)  # run the filtering
+        if not self._window:
+            filt_accel, rec_accel, power, power_peaks = acc_filt.apply(accel, 1 / dt)  # run the filtering
+        else:
+            filt_accel, rec_accel, power, power_peaks = {}, {}, {}, {}
+            for day in acc_win.keys():
+                filt_accel[day], rec_accel[day], power[day], power_peaks[day] = acc_filt.apply(acc_win[day], 1 / dt)
 
         # setup the STS detection
         if self._method == 'stillness':
@@ -389,7 +394,14 @@ class Sit2Stand:
         else:
             raise ValueError('Method must be set as `stillness` or `displacement`.')
 
-        sist = detect.apply(accel, filt_accel, rec_accel, timestamps, dt, power_peaks)
+        if not self._window:
+            sist = detect.apply(accel, filt_accel, rec_accel, timestamps, dt, power_peaks)
+        else:
+            sist = {}
+            for day in filt_accel.keys():
+                day_sist = detect.apply(acc_win[day], filt_accel[day], rec_accel[day], timestamps[day], dt,
+                                        power_peaks[day])
+                sist.update(day_sist)
 
         return sist
 
