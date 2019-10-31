@@ -6,7 +6,7 @@ from numpy import loadtxt
 # -------------------------------------------------------------------------------------------------
 #                               RAW DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='package')
 def raw_accel():
     # pull sample data
     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
@@ -15,7 +15,7 @@ def raw_accel():
     return acc
 
 
-@fixture
+@fixture(scope='package')
 def time():
     # pull sample time data
     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
@@ -27,7 +27,7 @@ def time():
 # -------------------------------------------------------------------------------------------------
 #                               ROLLING MEAN FILTERED DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='package')
 def filt_accel_rm():
     # pull the filtered data
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -36,7 +36,7 @@ def filt_accel_rm():
     return filt_accel
 
 
-@fixture
+@fixture(scope='package')
 def rm_accel_rm():
     # pull the rolling mean acceleration
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -45,7 +45,7 @@ def rm_accel_rm():
     return rm_accel
 
 
-@fixture
+@fixture(scope='package')
 def power_rm():
     # pull the power measure
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:
@@ -54,7 +54,7 @@ def power_rm():
     return power
 
 
-@fixture
+@fixture(scope='package')
 def power_peaks_rm():
     # pull the power peaks
     with resources.path('pysit2stand.data', '.filter_results_rm.csv') as file_path:

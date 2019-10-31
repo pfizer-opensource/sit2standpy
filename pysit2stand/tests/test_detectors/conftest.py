@@ -3,7 +3,7 @@ from numpy import sin, cos, arange, pi, zeros
 import h5py
 
 
-@fixture
+@fixture(scope='package')
 def integrate_data():
     dt = 0.01
     x = arange(0, 2 * pi, dt)
@@ -15,7 +15,7 @@ def integrate_data():
     return f, F, FF, dt
 
 
-@fixture
+@fixture(scope='package')
 def stillness():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -25,7 +25,7 @@ def stillness():
     return still
 
 
-@fixture
+@fixture(scope='package')
 def still_starts():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -35,7 +35,7 @@ def still_starts():
     return starts
 
 
-@fixture
+@fixture(scope='package')
 def still_stops():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -48,7 +48,7 @@ def still_stops():
 # -------------------------------------------------------------------------------------------------
 #                               STILLNESS DETECTION DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='package')
 def still_times():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -57,7 +57,7 @@ def still_times():
     return res
 
 
-@fixture
+@fixture(scope='package')
 def still_durations():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -66,7 +66,7 @@ def still_durations():
     return res
 
 
-@fixture
+@fixture(scope='package')
 def still_max_acc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -75,7 +75,7 @@ def still_max_acc():
     return res
 
 
-@fixture
+@fixture(scope='package')
 def still_min_acc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -84,7 +84,7 @@ def still_min_acc():
     return res
 
 
-@fixture
+@fixture(scope='package')
 def still_sparc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -96,7 +96,7 @@ def still_sparc():
 # -------------------------------------------------------------------------------------------------
 #                               DISPLACEMENT DETECTION DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='module')
 def disp_times():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -105,7 +105,7 @@ def disp_times():
     return res
 
 
-@fixture
+@fixture(scope='module')
 def disp_durations():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -114,7 +114,7 @@ def disp_durations():
     return res
 
 
-@fixture
+@fixture(scope='module')
 def disp_max_acc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -123,7 +123,7 @@ def disp_max_acc():
     return res
 
 
-@fixture
+@fixture(scope='module')
 def disp_min_acc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'
@@ -132,7 +132,7 @@ def disp_min_acc():
     return res
 
 
-@fixture
+@fixture(scope='module')
 def disp_sparc():
     file_name = '/Users/LukasAdamowicz/Documents/Python Packages/Sit to Stand/pysit2stand/pysit2stand/data/' \
                 '.detector_results.h5'

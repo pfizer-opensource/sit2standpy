@@ -7,7 +7,7 @@ from pandas import date_range, to_datetime
 # -------------------------------------------------------------------------------------------------
 #                               DWT RECONSTRUCTED FILTERED DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='package')
 def filt_accel_dwt():
     # pull the filtered data
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -16,7 +16,7 @@ def filt_accel_dwt():
     return filt_accel
 
 
-@fixture
+@fixture(scope='package')
 def rec_accel_dwt():
     # pull the rolling mean acceleration
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -25,7 +25,7 @@ def rec_accel_dwt():
     return rm_accel
 
 
-@fixture
+@fixture(scope='package')
 def power_dwt():
     # pull the power measure
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -34,7 +34,7 @@ def power_dwt():
     return power
 
 
-@fixture
+@fixture(scope='package')
 def power_peaks_dwt():
     # pull the power peaks
     with resources.path('pysit2stand.data', '.filter_results_dwt.csv') as file_path:
@@ -48,7 +48,7 @@ def power_peaks_dwt():
 # -------------------------------------------------------------------------------------------------
 #                               GENERATED TIMESTAMP DATA
 # -------------------------------------------------------------------------------------------------
-@fixture
+@fixture(scope='package')
 def overnight_time_accel():
     # generate some time that spans overnight, to testing windowing
     ts = date_range(start='2019-10-10 16:00', end='2019-10-11 12:00', freq='1H').astype(int)
@@ -58,7 +58,7 @@ def overnight_time_accel():
     return ts, acc
 
 
-@fixture
+@fixture(scope='package')
 def windowed_timestamps():
     ts = {'Day 1': to_datetime(['2019-10-10 16:00:00', '2019-10-10 17:00:00', '2019-10-10 18:00:00',
                                 '2019-10-10 19:00:00', '2019-10-10 20:00:00'], format='%Y-%m-%d %H:%M:%S'),
@@ -67,7 +67,7 @@ def windowed_timestamps():
     return ts
 
 
-@fixture
+@fixture(scope='package')
 def timestamps_time_accel():
     ts = date_range(start='2019-10-10 16:00', end='2019-10-10 16:02', freq='0.05S')
     time = ts.astype(int)
