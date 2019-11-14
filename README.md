@@ -63,10 +63,10 @@ else:
 
 # locate the sample data and load it (depending on python version)
 if version_info < (3, 7):
-    file_path = resource_filename(sit2standpy, 'data/sample.csv')
+    file_path = resource_filename('sit2standpy', 'data/sample.csv')
     data = np.loadtxt(file_path, delimiter=',')
 else:
-    with resources.path(sit2standpy, 'sample.csv') as file_path:
+    with resources.path('sit2standpy', 'sample.csv') as file_path:
         data = np.loadtxt(file_path, delimiter=',')
 
 # separate the stored sample data
