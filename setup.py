@@ -3,12 +3,12 @@ import setuptools
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-fid = open('pysit2stand/version.py')
+fid = open('sit2standpy/version.py')
 vers = fid.readlines()[-1].split()[-1].strip("\"'")
 fid.close()
 
 setuptools.setup(
-    name="pysit2stand",
+    name="sit2standpy",
     version=vers,
     author="Lukas Adamowicz",
     author_email="lukas.adamowicz@pfizer.com",
@@ -21,7 +21,7 @@ setuptools.setup(
         "Documentation": "https://pysit2stand.readthedocs.io/en/latest/"
     },
     include_pacakge_data=True,
-    package_data={'pysit2stand': ['data/*.csv']},
+    package_data={'sit2standpy': ['data/*.csv']},
     packages=setuptools.find_packages(),
     license='MIT',
     python_requires='>=3.6',

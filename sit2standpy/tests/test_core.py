@@ -2,7 +2,7 @@ import pytest
 from pandas import to_datetime
 from numpy import allclose
 
-from pysit2stand import Sit2Stand
+from sit2standpy import Sit2Stand
 
 
 def test_error(raw_accel, time):

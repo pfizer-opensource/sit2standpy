@@ -1,7 +1,7 @@
 import pytest
 from numpy import isclose
 
-from pysit2stand.quantify import TransitionQuantifier
+from sit2standpy.quantify import TransitionQuantifier
 
 
 def test_transition_quantifier_no_data(gen_raw_data):

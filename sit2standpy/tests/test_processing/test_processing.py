@@ -1,6 +1,6 @@
 import pytest
 from numpy import isclose, allclose
-from pysit2stand.processing import AccelerationFilter, process_timestamps
+from sit2standpy.processing import AccelerationFilter, process_timestamps
 
 
 class TestAccelerationFilter:

@@ -10,9 +10,9 @@ from pandas import to_datetime
 import pywt
 from multiprocessing import cpu_count, Pool
 
-from pysit2stand.processing import process_timestamps, AccelerationFilter
-from pysit2stand import detectors
-from pysit2stand.quantify import TransitionQuantifier
+from sit2standpy.processing import process_timestamps, AccelerationFilter
+from sit2standpy import detectors
+from sit2standpy.quantify import TransitionQuantifier
 
 '''
 class __AutoSit2Stand:
@@ -141,18 +141,18 @@ class __AutoSit2Stand:
         Parameters
         ----------
         acc_filter_kwargs : {None, dict}, optional
-            AccFilter key-word arguments. See Notes for default values. See `pysit2stand.AccFilter` for description
+            AccFilter key-word arguments. See Notes for default values. See `sit2standpy.AccFilter` for description
             of the parameters
         detector : {'stillness', 'displacement'}
             Detector method to use. Default is 'stillness'
         detector_kwargs : {None, dict}, optional
-            Detector method key-word arguments. See Notes for the default values, and `pysit2stand.detectors` for the
+            Detector method key-word arguments. See Notes for the default values, and `sit2standpy.detectors` for the
             parameters of the chosen detector.
 
         Returns
         -------
         sts : dict
-            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            Dictionary of sit2standpy.Transition objects containing information about a individual sit-to-stand
             transition. Keys for the dictionary are string timestamps of the start of the transition.
 
         Attributes

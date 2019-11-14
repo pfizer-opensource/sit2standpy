@@ -2,7 +2,7 @@ import pytest
 from numpy import allclose
 from pandas import to_datetime
 
-from pysit2stand.detectors.detectors import _get_still, _integrate_acc, Stillness, Displacement
+from sit2standpy.detectors.detectors import _get_still, _integrate_acc, Stillness, Displacement
 
 
 def test_get_still(filt_accel_rm, stillness, still_starts, still_stops):

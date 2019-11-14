@@ -53,7 +53,7 @@ pytest --pyargs sit2standpy.tests -v
 Basic use is accomplished through the ``Sit2Stand`` object:
 
 ```python
-import pysit2stand as s2s
+import sit2standpy as s2s
 import numpy as np  # importing sample data
 from sys import version_info
 if version_info < (3, 7):
@@ -63,10 +63,10 @@ else:
 
 # locate the sample data and load it (depending on python version)
 if version_info < (3, 7):
-    file_path = resource_filename('pysit2stand', 'data/sample.csv')
+    file_path = resource_filename(sit2standpy, 'data/sample.csv')
     data = np.loadtxt(file_path, delimiter=',')
 else:
-    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+    with resources.path(sit2standpy, 'sample.csv') as file_path:
         data = np.loadtxt(file_path, delimiter=',')
 
 # separate the stored sample data

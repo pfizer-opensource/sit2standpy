@@ -8,7 +8,7 @@ Pfizer
 from numpy import ceil, log2, arange, abs, sum, sqrt, diff
 from numpy.linalg import norm
 from scipy.fftpack import fft
-from pysit2stand.utility import Transition
+from sit2standpy.utility import Transition
 
 
 class TransitionQuantifier:

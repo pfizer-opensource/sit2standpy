@@ -15,7 +15,7 @@
 # import os
 import sphinx_rtd_theme
 import sys
-sys.path.insert(0, '/Users/adamol/Documents/STRYDE SitToStand/Sit to Stand Analysis/pysit2stand/')
+sys.path.insert(0, '/Users/adamol/Documents/STRYDE SitToStand/Sit to Stand Analysis/sit2standpy/')
 
 
 # -- Project information -----------------------------------------------------
@@ -25,7 +25,7 @@ copyright = '2019, Lukas Adamowicz'
 author = 'Lukas Adamowicz'
 
 # The short X.Y version
-import pysit2stand as s2s
+import sit2standpy as s2s
 version = s2s.__version__[:3]
 # The full version, including alpha/beta/rc tags
 release = s2s.__version__
@@ -70,7 +70,7 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 pygments_style = None
 
 # A lits of ignored prefixes for module index sorting
-modindex_common_prefix = ['pysit2stand.']
+modindex_common_prefix = ['sit2standpy.']
 
 
 autoclass_content = 'both'
@@ -140,7 +140,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'pysit2stand.tex', 'pysit2stand Documentation',
+    (master_doc, 'sit2standpy.tex', 'sit2standpy Documentation',
      'Lukas Adamowicz', 'manual'),
 ]
 
@@ -150,7 +150,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'pysit2stand', 'pysit2stand Documentation',
+    (master_doc, 'sit2standpy', 'sit2standpy Documentation',
      [author], 1)
 ]
 
@@ -161,8 +161,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'pysit2stand', 'pysit2stand Documentation',
-     author, 'pysit2stand', 'One line description of project.',
+    (master_doc, 'sit2standpy', 'sit2standpy Documentation',
+     author, 'sit2standpy', 'One line description of project.',
      'Miscellaneous'),
 ]
 

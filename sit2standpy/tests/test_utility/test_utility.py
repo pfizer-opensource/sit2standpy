@@ -1,7 +1,7 @@
 import pytest
 from pandas import to_datetime
 from numpy import isclose, allclose, array, ones
-from pysit2stand.utility import Transition, mov_stats
+from sit2standpy.utility import Transition, mov_stats
 
 
 @pytest.mark.parametrize(('start_time', 'end_time', 'ttype', 'long_type', 'duration'), (

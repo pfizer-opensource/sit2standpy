@@ -1,4 +1,4 @@
-# test importing of required modules and pysit2stand package
+# test importing of required modules and sit2standpy package
 
 
 def test_numpy():
@@ -20,9 +20,9 @@ def test_pywt():
 
 
 def test_pysit2stand():
-    import pysit2stand
-    from pysit2stand import Sit2Stand, detectors, mov_stats, Transition, TransitionQuantifier, \
+    import sit2standpy
+    from sit2standpy import Sit2Stand, detectors, mov_stats, Transition, TransitionQuantifier, \
         AccelerationFilter, process_timestamps, __version__
-    from pysit2stand.detectors import Stillness, Displacement
+    from sit2standpy.detectors import Stillness, Displacement
 
     return

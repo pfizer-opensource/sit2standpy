@@ -13,7 +13,7 @@ from pandas import to_datetime
 from udatetime import utcfromtimestamp
 from warnings import warn
 
-from pysit2stand.utility import mov_stats
+from sit2standpy.utility import mov_stats
 
 
 __all__ = ['AccelerationFilter', 'process_timestamps']

@@ -11,8 +11,8 @@ from numpy.linalg import norm
 from scipy.integrate import cumtrapz
 from scipy.signal import find_peaks, butter, filtfilt, detrend
 
-from pysit2stand.utility import Transition, mov_stats
-from pysit2stand.quantify import TransitionQuantifier as TQ
+from sit2standpy.utility import Transition, mov_stats
+from sit2standpy.quantify import TransitionQuantifier as TQ
 
 
 __all__ = ['Stillness', 'Displacement']
@@ -151,7 +151,7 @@ class Stillness:
     trans_quant : TransitionQuantifier
         TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
         `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
-        `pysit2stand.TransitionQuantifier`.
+        `sit2standpy.TransitionQuantifier`.
 
     Notes
     -----
@@ -225,7 +225,7 @@ class Stillness:
         Returns
         -------
         sts : dict
-            Dictionary of *pysit2stand.Transition* objects containing information about a individual sit-to-stand
+            Dictionary of *sit2standpy.Transition* objects containing information about a individual sit-to-stand
             transition. Keys for the dictionary are string timestamps of the start of the transition.
         """
         # find stillness
@@ -378,7 +378,7 @@ class Displacement:
     trans_quant : TransitionQuantifier
         TransitionQuantifier object, which contains a `quantify` method, which accepts the following arguments:
         `times`, `mag_acc_f`, `mag_acc_r`, `v_vel`, `v_pos`. Only times is required. See
-        `pysit2stand.TransitionQuantifier`.
+        `sit2standpy.TransitionQuantifier`.
 
     Notes
     -----
@@ -453,7 +453,7 @@ class Displacement:
         Returns
         -------
         sts : dict
-            Dictionary of *pysit2stand.Transition* objects containing information about a individual sit-to-stand
+            Dictionary of *sit2standpy.Transition* objects containing information about a individual sit-to-stand
             transition. Keys for the dictionary are string timestamps of the start of the transition.
         """
         # find stillness
@@ -661,7 +661,7 @@ class __Similarity:
         Returns
         -------
         sts : dict
-            Dictionary of pysit2stand.Transition objects containing information about a individual sit-to-stand
+            Dictionary of sit2standpy.Transition objects containing information about a individual sit-to-stand
             transition. Keys for the dictionary are string timestamps of the start of the transition.
         """
         # compute the sum of the scales in certain frequency bands
