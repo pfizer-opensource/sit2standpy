@@ -9,7 +9,8 @@ from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
-from pandas import to_datetime
+from pandas import to_datetime, DatetimeIndex
+from udatetime import utcfromtimestamp
 from warnings import warn
 
 from pysit2stand.utility import mov_stats
@@ -208,7 +209,17 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
             raise ValueError('Either (time_units) must be defined, or "unit" must be a key of (conv_kw).')
 
     # convert using pandas
-    timestamps = to_datetime(times, **conv_kw)
+    if 'unit' in conv_kw:
+        if conv_kw['unit'] == 'ms':
+            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e3))
+        elif conv_kw['unit'] == 'us':
+            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e6))
+        elif conv_kw['unit'] == 'ns':
+            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e9))
+        elif conv_kw['unit'] == 's':
+            timestamps = DatetimeIndex(utcfromtimestamp(times))
+    else:
+        timestamps = to_datetime(times, **conv_kw)
 
     # find the sampling time
     dt = mean(diff(timestamps[:100])) / timedelta64(1, 's')  # convert to seconds
