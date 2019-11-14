@@ -50,10 +50,10 @@ pytest --pyargs sit2standpy.tests -v
 
 ## Usage
 
-Basic use is accomplished through the ``AutoSit2Stand`` object:
+Basic use is accomplished through the ``Sit2Stand`` object:
 
 ```python
-import sit2standpy as s2s
+import pysit2stand as s2s
 import numpy as np  # importing sample data
 from sys import version_info
 if version_info < (3, 7):
@@ -63,10 +63,10 @@ else:
 
 # locate the sample data and load it (depending on python version)
 if version_info < (3, 7):
-    file_path = resource_filename('sit2standpy', 'data/sample.csv')
+    file_path = resource_filename('pysit2stand', 'data/sample.csv')
     data = np.loadtxt(file_path, delimiter=',')
 else:
-    with resources.path('sit2standpy.data', 'sample.csv') as file_path:
+    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
         data = np.loadtxt(file_path, delimiter=',')
 
 # separate the stored sample data
@@ -76,7 +76,7 @@ accel = data[:, 1:]
 # initialize the framework for detection
 ths = {'stand displacement': 0.125, 'transition velocity': 0.3, 'accel moving avg': 0.15,
                    'accel moving std': 0.1, 'jerk moving avg': 2.5, 'jerk moving std': 3}
-sts = s2s.Sit2Stand(method='stillness', gravity=9.84, thresholds=ths, long_still=0.3, still_window=0.3, 
+sts = s2s.Sit2Stand(method='stillness', gravity=9.84, thresholds=ths, long_still=0.3, still_window=0.3,
                     duration_factor=4, displacement_factor=0.6, lmin_kwargs={'height': -9.5}, power_band=[0, 0.5],
                     power_peak_kwargs={'distance': 128}, power_stdev_height=True)
 
