@@ -1,6 +1,7 @@
 from pytest import fixture
 from importlib import resources
 from numpy import loadtxt
+import h5py
 
 
 # -------------------------------------------------------------------------------------------------
@@ -63,3 +64,90 @@ def power_peaks_rm():
     power_peaks = power_peaks[power_peaks != -1]  # remove filler values
 
     return power_peaks
+
+
+# -------------------------------------------------------------------------------------------------
+#                               STILLNESS DETECTION DATA
+# -------------------------------------------------------------------------------------------------
+@fixture(scope='package')
+def still_times():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Stillness']['times'][()]
+    return res
+
+
+@fixture(scope='package')
+def still_durations():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Stillness']['durations'][()]
+    return res
+
+
+@fixture(scope='package')
+def still_max_acc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Stillness']['max_acc'][()]
+    return res
+
+
+@fixture(scope='package')
+def still_min_acc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Stillness']['min_acc'][()]
+    return res
+
+
+@fixture(scope='package')
+def still_sparc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Stillness']['sparc'][()]
+    return res
+
+
+# -------------------------------------------------------------------------------------------------
+#                               DISPLACEMENT DETECTION DATA
+# -------------------------------------------------------------------------------------------------
+@fixture(scope='module')
+def disp_times():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Displacement']['times'][()]
+    return res
+
+
+@fixture(scope='module')
+def disp_durations():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Displacement']['durations'][()]
+    return res
+
+
+@fixture(scope='module')
+def disp_max_acc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Displacement']['max_acc'][()]
+    return res
+
+
+@fixture(scope='module')
+def disp_min_acc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Displacement']['min_acc'][()]
+    return res
+
+
+@fixture(scope='module')
+def disp_sparc():
+    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+        with h5py.File(file_name, 'r') as file:
+            res = file['Displacement']['sparc'][()]
+    return res
+
