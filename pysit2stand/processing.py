@@ -9,7 +9,7 @@ from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
-from pandas import to_datetime, DatetimeIndex
+from pandas import to_datetime
 from udatetime import utcfromtimestamp
 from warnings import warn
 
@@ -211,13 +211,13 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
     # convert using pandas
     if 'unit' in conv_kw:
         if conv_kw['unit'] == 'ms':
-            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e3))
+            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e3])
         elif conv_kw['unit'] == 'us':
-            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e6))
+            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e6])
         elif conv_kw['unit'] == 'ns':
-            timestamps = DatetimeIndex(utcfromtimestamp(times / 1e9))
+            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e9])
         elif conv_kw['unit'] == 's':
-            timestamps = DatetimeIndex(utcfromtimestamp(times))
+            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times])
     else:
         timestamps = to_datetime(times, **conv_kw)
 
