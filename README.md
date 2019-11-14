@@ -1,14 +1,14 @@
-# pysit2stand
-``PySit2Stand`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions 
+# Sit2StandPy
+``Sit2StandPy`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions 
 from lumbar-mounted accelerometer data, and then provide quantitative metrics assessing the performance of the 
 transitions. A modular framework is employed that would allow for easy modification of parts of the algorithm to suit 
 other specific requirements, while still keeping core elements of the algorithm intact. As gyroscopes impose a 
-significant detriment to battery life due to power consumption, ``PySit2Stand``'s use of acceleration only allows for
+significant detriment to battery life due to power consumption, ``Sit2StandPy``'s use of acceleration only allows for
 a single sensor to collect days worth of analyzable data.
 
 ## Documentation
 
-[Full documentation](https://pysit2stand.readthedocs.io/en/latest/) is available, containing API references, 
+[Full documentation](https://sit2standpy.readthedocs.io/en/latest/) is available, containing API references, 
 installation instructions, and usage examples.
 
 
@@ -31,13 +31,13 @@ To run the tests, additionally the following are needed
 Run in the command line/terminal:
 
 ```shell script
-pip install pysit2stand
+pip install sit2standpy
 ```
 
 pip will automatically collect and install the required packages by default. If you do not want this behavior, run
 
 ```shell script
-pip install pysit2stand --no-deps
+pip install sit2standpy --no-deps
 ```
 
 
@@ -46,7 +46,7 @@ pip install pysit2stand --no-deps
 Automated tests can be run with ``pytest`` through the terminal:
 
 ```shell script
-pytest --pyargs pysit2stand.tests -v
+pytest --pyargs sit2standpy.tests -v
 ```
 
 ## Usage
@@ -54,7 +54,7 @@ pytest --pyargs pysit2stand.tests -v
 Basic use is accomplished through the ``AutoSit2Stand`` object:
 
 ```python
-import pysit2stand as s2s
+import sit2standpy as s2s
 import numpy as np  # importing sample data
 from sys import version_info
 if version_info < (3, 7):
@@ -64,10 +64,10 @@ else:
 
 # locate the sample data and load it (depending on python version)
 if version_info < (3, 7):
-    file_path = resource_filename('pysit2stand', 'data/sample.csv')
+    file_path = resource_filename('sit2standpy', 'data/sample.csv')
     data = np.loadtxt(file_path, delimiter=',')
 else:
-    with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+    with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         data = np.loadtxt(file_path, delimiter=',')
 
 # separate the stored sample data
