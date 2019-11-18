@@ -91,3 +91,8 @@ print(SiSt)
 detected
 
 
+## Contributing
+
+Contributions are welcome.  Please see the [contributions](https://github.com/PfizerRD/sit2standpy/CONTRIBUTING.md) document for more information
+
+
