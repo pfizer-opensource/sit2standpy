@@ -21,7 +21,7 @@ setuptools.setup(
         "Documentation": "https://pysit2stand.readthedocs.io/en/latest/"
     },
     include_pacakge_data=True,
-    package_data={'sit2standpy': ['data/*.csv', 'data/*.h5']},
+    package_data={'sit2standpy': ['data/*.csv', 'data/.*.h5', 'data/.*.csv']},
     packages=setuptools.find_packages(),
     license='MIT',
     python_requires='>=3.6',
