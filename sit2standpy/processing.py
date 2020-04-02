@@ -77,7 +77,7 @@ class AccelerationFilter:
             self.power_end_f = power_band[1]
 
         self.std_height = power_std_height
-        self.std_trim = std_trim
+        self.std_trim = power_std_trim
         if power_peak_kw is None:  # if not set, set the default values
             # default height is 90. this will be reset later if necessary if using the stdev height
             self.power_peak_kw = {'height': 90}
