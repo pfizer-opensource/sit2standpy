@@ -21,8 +21,8 @@ __all__ = ['AccelerationFilter', 'process_timestamps']
 
 class AccelerationFilter:
     def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw=None, power_std_height=True,
-                 reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5, window=0.25,
-                 discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
+                 power_std_trim=0, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5, 
+                 window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
         """
         Object for filtering and reconstructing raw acceleration data
 
@@ -42,6 +42,9 @@ class AccelerationFilter:
         power_std_height : bool, optional
             Use the standard deviation of the power for peak finding. Default is True. If True, the standard deviation
             height will overwrite the setting in `power_peak_kw`.
+        power_std_trim : int, optional
+            Number of seconds to trim off the start and end of the power signal before computing the standard deviation
+            for `power_std_height`. Default is 0s, which will not trim anything. Recommended value if trimming is 1s.
         reconstruction_method : {'moving average', 'dwt'}, optional
             Method for computing the reconstructed acceleration. Default is 'moving average', which takes the moving
             average over the specified window. Other option is 'dwt', which uses the discrete wavelet transform to
@@ -74,6 +77,7 @@ class AccelerationFilter:
             self.power_end_f = power_band[1]
 
         self.std_height = power_std_height
+        self.std_trim = power_std_trim
         if power_peak_kw is None:  # if not set, set the default values
             # default height is 90. this will be reset later if necessary if using the stdev height
             self.power_peak_kw = {'height': 90}
@@ -155,7 +159,11 @@ class AccelerationFilter:
 
         # find the peaks in the power data
         if self.std_height:
-            self.power_peak_kw['height'] = std(power, ddof=1)
+            if self.std_trim != 0:
+                trim = int(fs * self.std_trim)
+                self.power_peak_kw['height'] = std(power[trim:-trim], ddof=1)
+            else:
+                self.power_peak_kw['height'] = std(power, ddof=1)
 
         power_peaks, _ = find_peaks(power, **self.power_peak_kw)
 
