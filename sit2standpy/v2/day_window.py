@@ -33,7 +33,7 @@ class WindowDays(_BaseProcess):
         if time_edt.hour > self._hours[0]:
             n_days += 1
 
-        # set the
+        # set the start and end hours for the first day
         day_start = time_sdt.replace(hour=self._hours[0], minute=0, second=0, microsecond=0)
         day_end = time_sdt.replace(hour=self._hours[1], minute=0, second=0, microsecond=0)
 
