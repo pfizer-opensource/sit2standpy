@@ -24,7 +24,7 @@ class WindowDays(_BaseProcess):
         self._hours = hours
 
     def _call(self):
-        utime = self.data[DATA.format('Unix Time')]
+        utime = self.data[DATA.format(data='Unix Time')]
         # get the first timepoint to know which day to start and end with
         time_sdt = udatetime.utcfromtimestamp(utime[0])
         time_edt = udatetime.utcfromtimestamp(utime[-1])
@@ -43,7 +43,7 @@ class WindowDays(_BaseProcess):
             iend = argmin(abs(utime[istart:] - day_end.timestamp())) + istart
 
             for key in self.data['Sensors']['Lumbar']:
-                self.data = (PROC.format(day_n=i+1, data=key), self.data['Sensors']['Lumbar'][key][istart:iend])
+                self.data = (PROC.format(day_n=i+1, value=key), self.data['Sensors']['Lumbar'][key][istart:iend])
 
             day_start += datetime.timedelta(days=1)
             day_end += datetime.timedelta(days=1)
