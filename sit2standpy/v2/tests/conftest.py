@@ -10,7 +10,7 @@ class BaseProcessTester:
     @classmethod
     def setup_class(cls):
         cls.process = None
-        cls.sensor_keys = ['/Sensors/Lumbar/Accelerometer', '/Sensors/Lumbar/Unix Time']
+        cls.sensor_keys = ['Sensors/Lumbar/Accelerometer', 'Sensors/Lumbar/Unix Time']
         cls.processed_keys = None
         cls.test_keys = None
 
@@ -45,19 +45,21 @@ class BaseProcessTester:
         return close
 
     @staticmethod
-    def get_dict_key(dict, key):
+    def get_dict_key(dict_, key):
         keys = key.split('/', 1)
         if len(keys) == 2:
-            BaseProcessTester.get_dict_key(dict[keys[0]], keys[1])
+            return BaseProcessTester.get_dict_key(dict_[keys[0]], keys[1])
         else:
-            return dict[keys[0]]
+            return dict_[keys[0]]
 
 
 # TRUTH DATA
 # ----------
 @fixture(scope='package')
 def truth_path():
-    return resources.path('sit2standpy.data', 'sample.h5')
+    with resources.path('sit2standpy.data', 'sample.h5') as p:
+        path = p
+    return path
 
 
 # RAW DATA
@@ -77,7 +79,7 @@ def get_sample_h5():
                         data[key] = f[key][()]
         data.close()
         return tf
-    return sample_h5()
+    return sample_h5
 
 
 @fixture(scope='package')
@@ -89,6 +91,8 @@ def get_sample_dict():
                 dict_[keys[0]] = {}
             assign_subdict(dict_[keys[0]], '/'.join(keys[1:]), value)
         elif len(keys) == 2:
+            if keys[0] not in dict_:
+                dict_[keys[0]] = {}
             dict_[keys[0]][keys[1]] = value
 
     def sample_dict(sensor_keys=None, proc_keys=None):

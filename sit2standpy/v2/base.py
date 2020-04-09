@@ -4,8 +4,8 @@ Functionality for processes in the gait processing pipeline
 import h5py
 
 
-PROC = '/Processed/Sit2Stand/Day {day_n}/{value}'
-DATA = '/Sensors/Lumbar/{data}'
+PROC = 'Processed/Sit2Stand/Day {day_n}/{value}'
+DATA = 'Sensors/Lumbar/{data}'
 
 
 class _BaseProcess:
