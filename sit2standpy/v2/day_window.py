@@ -42,8 +42,7 @@ class WindowDays(_BaseProcess):
             istart = argmin(abs(utime[iend-10:] - day_start.timestamp())) + iend - 10
             iend = argmin(abs(utime[istart:] - day_end.timestamp())) + istart
 
-            for key in self.data['Sensors']['Lumbar']:
-                self.data = (PROC.format(day_n=i+1, value=key), array([istart, iend]))
+            self.data = (PROC.format(day_n=i+1, value='Indices'), array([istart, iend]))
 
             day_start += datetime.timedelta(days=1)
             day_end += datetime.timedelta(days=1)
