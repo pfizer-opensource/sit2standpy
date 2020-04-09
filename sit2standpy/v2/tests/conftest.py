@@ -55,6 +55,7 @@ class BaseProcessTester:
 
 # TRUTH DATA
 # ----------
+@fixture(scope='package')
 def truth_path():
     return resources.path('sit2standpy.data', 'sample.h5')
 
