@@ -6,6 +6,8 @@ from importlib import resources
 
 
 # BASE TESTING CLASS
+# ------------------
+# TODO add error testing
 class BaseProcessTester:
     @classmethod
     def setup_class(cls):
