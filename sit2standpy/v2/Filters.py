@@ -1,13 +1,18 @@
 """
 Acceleration filtering and preprocessing
 """
-from numpy import zeros
+import pywt
+from numpy import mean, diff, around, arange, sum, std
+from numpy.linalg import norm
+from scipy.signal import butter, sosfiltfilt, find_peaks
+from warnings import warn
 
 from sit2standpy.v2.base import _BaseProcess, PROC, DATA
+from sit2standpy.utility import mov_stats
 
 
 class AccelerationFilter(_BaseProcess):
-    def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw, power_std_height=True,
+    def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw=None, power_std_height=True,
                  power_std_trim=0, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
                  window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1, **kwargs):
         """
@@ -87,3 +92,68 @@ class AccelerationFilter(_BaseProcess):
         self.dwave = discrete_wavelet
         self.ext_mode = extension_mode
         self.recon_level = reconstruction_level
+
+    def _call(self):
+
+        # compute the sampling frequency
+        dt = mean(diff(self.data['Sensors']['Lumbar']['Unix Time'][:100]))
+        # set-up the filter that will be used
+        sos = butter(self.lp_ord, 2 * self.lp_cut * dt, btype='low', output='sos')
+
+        if 'Processed' in self.data:
+            days = [i for i in self.data['Processed']['Sit2Stand'].keys() if 'Day' in i]
+        else:
+            days = ['Day 1']
+        for iday, day in enumerate(days):
+            try:
+                start, stop = self.data['Processed']['Sit2Stand'][day]['Indices']
+            except KeyError:
+                start, stop = (0, -1)
+            # compute the magnitude of the acceleration
+            m_acc = norm(self.data['Sensors']['Lumbar']['Accelerometer'][start:stop], axis=1)
+
+            f_acc = sosfiltfilt(sos, m_acc)
+
+            # reconstructed acceleration
+            if self.method == 'dwt':
+                # deconstruct the filtered acceleration magnitude
+                coefs = pywt.wavedec(f_acc, self.dwave, mode=self.ext_mode)
+
+                # set all but the desired level of coefficients to be 0s
+                if (len(coefs) - self.recon_level) < 1:
+                    warn(f'Chosen reconstruction level is too high, setting to {len(coefs) - 1}', UserWarning)
+                    ind = 1
+                else:
+                    ind = len(coefs) - self.recon_level
+
+                for i in range(1, len(coefs)):
+                    if i != ind:
+                        coefs[i][:] = 0
+                r_acc = pywt.waverec(coefs, self.dwave, mode=self.ext_mode)
+            elif self.method == 'moving average':
+                n_window = int(around(self.window / dt))
+                r_acc, *_ = mov_stats(f_acc, n_window)
+
+            # CWT power peak detection
+            coefs, freqs = pywt.cwt(r_acc, arange(1, 65), self.cwave, sampling_period=dt)
+
+            # sum the coefficients over the frequencies in the power band
+            f_mask = (freqs <= self.power_end_f) & (freqs >= self.power_start_f)
+            power = sum(coefs[f_mask, :], axis=0)
+
+            # find the peaks in the power data
+            if self.std_height:
+                if self.std_trim != 0:
+                    trim = int(self.std_trim / dt)
+                    self.power_peak_kw['height'] = std(power[trim:-trim], ddof=1)
+                else:
+                    self.power_peak_kw['height'] = std(power, ddof=1)
+
+            power_peaks, _ = find_peaks(power, **self.power_peak_kw)
+
+            self.data = (PROC.format(day_n=iday, value='Filtered Acceleration'), f_acc)
+            self.data = (PROC.format(day_n=iday, value='Reconstructed Acceleration'), r_acc[:m_acc.size])
+            self.data = (PROC.format(day_n=iday, value='Power'), power)
+            self.data = (PROC.format(day_n=iday, value='Power Peaks'), power_peaks)
+
+
