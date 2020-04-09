@@ -9,7 +9,7 @@ from sit2standpy.v2.base import _BaseProcess, PROC, DATA
 class AccelerationFilter(_BaseProcess):
     def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw, power_std_height=True,
                  power_std_trim=0, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,
-                 window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1):
+                 window=0.25, discrete_wavelet='dmey', extension_mode='constant', reconstruction_level=1, **kwargs):
         """
         Filter acceleration and located potential sit-to-stand time points.
 
@@ -52,4 +52,38 @@ class AccelerationFilter(_BaseProcess):
         reconstruction_level : int, optional
             Reconstruction level of the DWT processed signal. Default is 1. Ignored if reconstruction_method is
             'moving average'.
+
+        Notes
+        -----
+        The default height threshold of 90 in `power_peak_kw` was determined on data sampled at 128Hz, and would likely
+        need to be adjusted for different sampling frequencies. Especially if using a different sampling frequency,
+        use of `power_std_height=True` is recommended.
         """
+        super().__init__(**kwargs)
+
+        self.cwave = continuous_wavelet
+
+        if power_band is None:
+            self.power_start_f = 0
+            self.power_end_f = 0.5
+        elif isinstance(power_band, (int, float)):
+            self.power_start_f = 0
+            self.power_end_f = power_band
+        else:
+            self.power_start_f, self.power_end_f = power_band
+
+        self.std_height = power_std_height
+        self.std_trim = power_std_trim
+
+        if power_peak_kw is None:
+            self.power_peak_kw = {'height': 90}
+        else:
+            self.power_peak_kw = power_peak_kw
+
+        self.method = reconstruction_method
+        self.lp_ord = lowpass_order
+        self.lp_cut = lowpass_cutoff
+        self.window = window
+        self.dwave = discrete_wavelet
+        self.ext_mode = extension_mode
+        self.recon_level = reconstruction_level
