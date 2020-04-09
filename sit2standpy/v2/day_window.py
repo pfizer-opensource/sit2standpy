@@ -3,7 +3,7 @@ Windowing processes for windowing over days
 """
 import udatetime
 import datetime
-from numpy import argmin, abs
+from numpy import argmin, abs, array
 
 from sit2standpy.v2.base import _BaseProcess, PROC, DATA
 
@@ -43,7 +43,7 @@ class WindowDays(_BaseProcess):
             iend = argmin(abs(utime[istart:] - day_end.timestamp())) + istart
 
             for key in self.data['Sensors']['Lumbar']:
-                self.data = (PROC.format(day_n=i+1, value=key), self.data['Sensors']['Lumbar'][key][istart:iend])
+                self.data = (PROC.format(day_n=i+1, value=key), array([istart, iend]))
 
             day_start += datetime.timedelta(days=1)
             day_end += datetime.timedelta(days=1)
