@@ -2,7 +2,7 @@ import pytest
 from tempfile import TemporaryFile
 
 from sit2standpy.v2.day_window import WindowDays
-from sit2standpy.v2.Filters import AccelerationFilter
+from sit2standpy.v2.filters import AccelerationFilter
 
 from sit2standpy.v2.tests.conftest import BaseProcessTester
 
