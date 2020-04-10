@@ -151,9 +151,9 @@ class AccelerationFilter(_BaseProcess):
 
             power_peaks, _ = find_peaks(power, **self.power_peak_kw)
 
-            self.data = (PROC.format(day_n=iday, value='Filtered Acceleration'), f_acc)
-            self.data = (PROC.format(day_n=iday, value='Reconstructed Acceleration'), r_acc[:m_acc.size])
-            self.data = (PROC.format(day_n=iday, value='Power'), power)
-            self.data = (PROC.format(day_n=iday, value='Power Peaks'), power_peaks)
+            self.data = (PROC.format(day_n=iday+1, value='Filtered Acceleration'), f_acc)
+            self.data = (PROC.format(day_n=iday+1, value='Reconstructed Acceleration'), r_acc[:m_acc.size])
+            self.data = (PROC.format(day_n=iday+1, value='Power'), power)
+            self.data = (PROC.format(day_n=iday+1, value='Power Peaks'), power_peaks)
 
 
