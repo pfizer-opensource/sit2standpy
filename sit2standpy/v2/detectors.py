@@ -159,7 +159,17 @@ class Detector(_BaseProcess):
                 if v_vel[ppk - prev_int_start] < self.thresh['transition_velocity']:  # index gets velocity STS
                     continue
 
-                sts_start = end_still  # TODO likely changes with method
+                if self.stillness_constraint:
+                    sts_start = end_still
+                else:
+                    try:  # look for the previous postive zero crossing as the start of the transition
+                        sts_start = pos_zc[pos_zc < ppk][-1]
+                        p_still = stops[stops < ppk][-1]
+                        # possibly use the end of stillness if it is close enough to the ZC
+                        if -0.5 < (dt * (p_still - sts_start)) < 0.7:
+                            sts_start = p_still
+                    except IndexError:
+                        continue
                 # transition end
                 try:
                     sts_end = neg_zc[neg_zc > ppk][0]
@@ -274,19 +284,18 @@ class Detector(_BaseProcess):
             if (time[peak] - time[end_still]) > 2:
                 raise IndexError
         else:
-            pass
+            end_still = lstill_stops[lstill_stops < peak][-1]
+            if (time[peak] - time[end_still]) > 30:  # don't want to integrate too far out
+                raise IndexError
         return end_still
 
     def _get_start_still(self, time, still_starts, lstill_starts, peak):
         still_at_end = False
-        if self.require_stillness:
-            start_still = lstill_starts[lstill_starts > peak][0]
-            if (time[start_still] - time[peak]) < 30:
-                still_at_end = True
-            else:
-                raise IndexError
+        start_still = lstill_starts[lstill_starts > peak][0]
+        if (time[start_still] - time[peak]) < 30:
+            still_at_end = True
         else:
-            pass
+            raise IndexError
         return start_still, still_at_end
 
     @staticmethod
