@@ -95,9 +95,12 @@ class AccelerationFilter(_BaseProcess):
 
     def _call(self):
 
-        # compute the sampling frequency
-        dt = mean(diff(self.data['Sensors']['Lumbar']['Unix Time'][:100]))
-        self.data = ('Sensors/Lumbar/dt', dt)  # save for future use
+        # compute the sampling frequency if necessary
+        if 'dt' in self.data['Sensors']['Lumbar']:
+            dt = self.data['Sensors']['Lumbar']
+        else:
+            dt = mean(diff(self.data['Sensors']['Lumbar']['Unix Time'][:100]))
+            self.data = ('Sensors/Lumbar/dt', dt)  # save for future use
         # set-up the filter that will be used
         sos = butter(self.lp_ord, 2 * self.lp_cut * dt, btype='low', output='sos')
 
