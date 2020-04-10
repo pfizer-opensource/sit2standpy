@@ -2,7 +2,7 @@
 Acceleration filtering and preprocessing
 """
 import pywt
-from numpy import mean, diff, around, arange, sum, std
+from numpy import mean, diff, around, arange, sum, std, ascontiguousarray
 from numpy.linalg import norm
 from scipy.signal import butter, sosfiltfilt, find_peaks
 from warnings import warn
@@ -108,11 +108,11 @@ class AccelerationFilter(_BaseProcess):
             try:
                 start, stop = self.data['Processed']['Sit2Stand'][day]['Indices']
             except KeyError:
-                start, stop = (0, -1)
+                start, stop = 0, self.data['Sensors']['Lumbar']['Accelerometer'].shape[0]
             # compute the magnitude of the acceleration
             m_acc = norm(self.data['Sensors']['Lumbar']['Accelerometer'][start:stop], axis=1)
 
-            f_acc = sosfiltfilt(sos, m_acc)
+            f_acc = ascontiguousarray(sosfiltfilt(sos, m_acc))
 
             # reconstructed acceleration
             if self.method == 'dwt':
