@@ -34,7 +34,7 @@ class AccelerationFilter(_BaseProcess):
         power_std_height : bool, optional
             Use the standard deviation of the power for peak finding. Default is True. If True, the standard deviation
             height will overwrite the `height` setting in `power_peak_kw`.
-        power_std_trim : int, optional
+        power_std_trim : float, int, optional
             Number of seconds to trim off the start and end of the power signal before computing the standard deviation
             for `power_std_height`. Default is 0s, which will not trim anything. Suggested value of trimming is 0.5s.
         reconstruction_method : {'moving average', 'dwt'}, optional
