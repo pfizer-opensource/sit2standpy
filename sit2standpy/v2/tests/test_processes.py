@@ -19,9 +19,9 @@ class TestAccelerationFilterMovingAverage(BaseProcessTester):
     @classmethod
     def setup_class(cls):
         super().setup_class()
-        cls.process = AccelerationFilter('gaus1', power_band=[0, 0.5], power_peak_kw=None, power_std_height=True,
-                                         power_std_trim=0.5, reconstruction_method='moving average',
-                                         lowpass_order=4, lowpass_cutoff=5, window=0.25)
+        cls.process = AccelerationFilter('gaus1', power_band=[0, 0.5], power_peak_kw={'distance': 128},
+                                         power_std_height=True, power_std_trim=0,
+                                         reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5, window=0.25)
         cls.test_keys = [
             'Processed/Sit2Stand/Day 1/Filtered Acceleration',
             'Processed/Sit2Stand/Day 1/Reconstructed Acceleration',
