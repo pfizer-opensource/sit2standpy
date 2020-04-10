@@ -118,6 +118,8 @@ def mov_stats(seq, window):
     """
 
     def rolling_window(x, wind):
+        if not x.flags['C_CONTIGUOUS']:
+            raise ValueError("Data must be C-contiguous to be able to window for moving statistics")
         shape = x.shape[:-1] + (x.shape[-1] - wind + 1, wind)
         strides = x.strides + (x.strides[-1],)
         return stride_tricks.as_strided(x, shape=shape, strides=strides)
