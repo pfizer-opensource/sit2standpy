@@ -36,14 +36,16 @@ class BaseProcessTester:
     def h5_allclose(pred, truth, key):
         with h5py.File(truth, 'r') as tr:
             with h5py.File(pred, 'r') as pr:
-                close = allclose(pr[key], tr[key])
+                # adjust atol since old values used filtfilt, not sosfiltfilt
+                close = allclose(pr[key], tr[key], atol=6e-4)
         return close
 
     @staticmethod
     def dict_allclose(pred, truth, key):
         with h5py.File(truth, 'r') as tr:
             pred_data = BaseProcessTester.get_dict_key(pred, key)
-            close = allclose(pred_data, tr[key])
+            # adjust atol since old values used filtfilt, not sosfiltfilt
+            close = allclose(pred_data, tr[key], atol=6e-4)
         return close
 
     @staticmethod
