@@ -226,21 +226,21 @@ class Detector(_BaseProcess):
                         sts['Min. Accel.'].append(mn_)
                         sts['SPARC'].append(sal_)
 
-                # check to ensure no partial transitions
-                sts['Vertical Displacement'] = array(sts['Vertical Displacement'])
-                partial = sts['Vertical Displacement'] < (self.disp_factor * median(sts['Vertical Displacement']))
+            # check to ensure no partial transitions
+            sts['Vertical Displacement'] = array(sts['Vertical Displacement'])
+            partial = sts['Vertical Displacement'] < (self.disp_factor * median(sts['Vertical Displacement']))
 
-                # sts['STS Times'] = array(sts['STS Times'])[~partial]
-                # sts['Duration'] = array(sts['Duration'])[~partial]
-                # sts['Vertical Displacement'] = sts['Vertical Displacement'][~partial]
-                # sts['Max. Accel.'] = array(sts['Max. Accel.'])[~partial]
-                # sts['Min. Accel.'] = array(sts['Min. Accel.'])[~partial]
-                # sts['SPARC'] = array(sts['SPARC'])[~partial]
+            # sts['STS Times'] = array(sts['STS Times'])[~partial]
+            # sts['Duration'] = array(sts['Duration'])[~partial]
+            # sts['Vertical Displacement'] = sts['Vertical Displacement'][~partial]
+            # sts['Max. Accel.'] = array(sts['Max. Accel.'])[~partial]
+            # sts['Min. Accel.'] = array(sts['Min. Accel.'])[~partial]
+            # sts['SPARC'] = array(sts['SPARC'])[~partial]
 
-                mtd = 'Stillness' if self.stillness_constraint else 'Displacement'
-                key = 'Processed/Sit2Stand/{day}/{method} Method/{param}'
-                for feat in sts:
-                    self.data = (key.format(day=day, method=mtd, param=feat), array(sts[feat])[~partial])
+            mtd = 'Stillness' if self.stillness_constraint else 'Displacement'
+            key = 'Processed/Sit2Stand/{day}/{method} Method/{param}'
+            for feat in sts:
+                self.data = (key.format(day=day, method=mtd, param=feat), array(sts[feat])[~partial])
 
     def _integrate(self, vert_accel, dt, still_at_end):
         """
