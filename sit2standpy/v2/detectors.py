@@ -232,10 +232,10 @@ class Detector(_BaseProcess):
                 # sts['Min. Accel.'] = array(sts['Min. Accel.'])[~partial]
                 # sts['SPARC'] = array(sts['SPARC'])[~partial]
 
-                # save to hdf
-                key = 'Processed/Sit2Stand/{day}/Transfers/{param}'
+                mtd = 'Stillness' if self.stillness_constraint else 'Displacement'
+                key = 'Processed/Sit2Stand/{day}/Transfers/{param} [{method}]'
                 for feat in sts:
-                    self.data = (key.format(day=day, param=feat), array(sts[feat])[~partial])
+                    self.data = (key.format(day=day, param=feat, method=mtd), array(sts[feat])[~partial])
 
     def _integrate(self, vert_accel, dt, still_at_end):
         """
