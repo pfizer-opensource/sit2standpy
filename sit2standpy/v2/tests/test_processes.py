@@ -51,3 +51,24 @@ class TestDetectorStillness(BaseProcessTester):
             'Processed/Sit2Stand/Day 1/Stillness Method/Min. Accel.',
             'Processed/Sit2Stand/Day 1/Stillness Method/SPARC'
         ]
+
+
+class TestDetectorDisplacement(BaseProcessTester):
+    @classmethod
+    def setup_class(cls):
+        super().setup_class()
+        cls.process = Detector(stillness_constraint=False, gravity=9.81, thresholds=None,
+                               gravity_pass_order=4, gravity_pass_cutoff=0.8, long_still=0.5, moving_window=0.3,
+                               duration_factor=10, displacement_factor=0.75)
+        cls.processed_keys = [
+            'Processed/Sit2Stand/Day 1/Filtered Acceleration',
+            'Processed/Sit2Stand/Day 1/Reconstructed Acceleration',
+            'Processed/Sit2Stand/Day 1/Power Peaks'
+        ]
+        cls.test_keys = [
+            'Processed/Sit2Stand/Day 1/Displacement Method/STS Times',
+            'Processed/Sit2Stand/Day 1/Displacement Method/Duration',
+            'Processed/Sit2Stand/Day 1/Displacement Method/Max. Accel.',
+            'Processed/Sit2Stand/Day 1/Displacement Method/Min. Accel.',
+            'Processed/Sit2Stand/Day 1/Displacement Method/SPARC'
+        ]
