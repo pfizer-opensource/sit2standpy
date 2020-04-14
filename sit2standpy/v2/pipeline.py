@@ -1,3 +1,6 @@
+__all__ = ['Sequential']
+
+
 class Sequential:
     def __init__(self):
         """
