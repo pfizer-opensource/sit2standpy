@@ -100,7 +100,7 @@ class AccelerationFilter(_BaseProcess):
 
         # compute the sampling frequency if necessary
         if 'dt' in self.data['Sensors']['Lumbar']:
-            dt = self.data['Sensors']['Lumbar']
+            dt = self.data['Sensors']['Lumbar']['dt']
         else:
             dt = mean(diff(self.data['Sensors']['Lumbar']['Unix Time'][:100]))
             self.data = ('Sensors/Lumbar/dt', dt)  # save for future use
