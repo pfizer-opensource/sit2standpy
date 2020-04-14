@@ -233,9 +233,9 @@ class Detector(_BaseProcess):
                 # sts['SPARC'] = array(sts['SPARC'])[~partial]
 
                 mtd = 'Stillness' if self.stillness_constraint else 'Displacement'
-                key = 'Processed/Sit2Stand/{day}/Transfers/{param} [{method}]'
+                key = 'Processed/Sit2Stand/{day}/{method} Method/{param}'
                 for feat in sts:
-                    self.data = (key.format(day=day, param=feat, method=mtd), array(sts[feat])[~partial])
+                    self.data = (key.format(day=day, method=mtd, param=feat), array(sts[feat])[~partial])
 
     def _integrate(self, vert_accel, dt, still_at_end):
         """
