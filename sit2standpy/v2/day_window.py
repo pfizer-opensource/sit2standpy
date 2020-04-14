@@ -8,6 +8,9 @@ from numpy import argmin, abs, array
 from sit2standpy.v2.base import _BaseProcess, PROC, DATA
 
 
+__all__ = ['WindowDays']
+
+
 class WindowDays(_BaseProcess):
     def __init__(self, hours=[8, 20], **kwargs):
         """

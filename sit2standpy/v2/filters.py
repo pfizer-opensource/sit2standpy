@@ -11,6 +11,9 @@ from sit2standpy.v2.base import _BaseProcess, PROC, DATA
 from sit2standpy.utility import mov_stats
 
 
+__all__ = ['AccelerationFilter']
+
+
 class AccelerationFilter(_BaseProcess):
     def __init__(self, continuous_wavelet='gaus1', power_band=None, power_peak_kw=None, power_std_height=True,
                  power_std_trim=0, reconstruction_method='moving average', lowpass_order=4, lowpass_cutoff=5,

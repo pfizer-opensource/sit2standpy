@@ -4,6 +4,8 @@ Functionality for processes in the gait processing pipeline
 import h5py
 
 
+__all__ = ['']
+
 PROC = 'Processed/Sit2Stand/Day {day_n}/{value}'
 DATA = 'Sensors/Lumbar/{data}'
 

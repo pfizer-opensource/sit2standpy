@@ -16,6 +16,9 @@ from sit2standpy.utility import get_stillness
 from sit2standpy.v2.base import _BaseProcess, DATA, PROC
 
 
+__all__ = ['Detector']
+
+
 class Detector(_BaseProcess):
     def __init__(self, stillness_constraint=True, gravity=9.81, thresholds=None, gravity_pass_order=4,
                  gravity_pass_cutoff=0.8, long_still=0.5, moving_window=0.3, duration_factor=10,
