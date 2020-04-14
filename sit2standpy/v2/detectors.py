@@ -225,17 +225,17 @@ class Detector(_BaseProcess):
                 sts['Vertical Displacement'] = array(sts['Vertical Displacement'])
                 partial = sts['Vertical Displacement'] < (self.disp_factor * median(sts['Vertical Displacement']))
 
-                sts['STS Times'] = array(sts['STS Times'])[~partial]
-                sts['Duration'] = array(sts['Duration'])[~partial]
-                sts['Vertical Displacement'] = sts['Vertical Displacement'][~partial]
-                sts['Max. Accel.'] = array(sts['Max. Accel.'])[~partial]
-                sts['Min. Accel.'] = array(sts['Min. Accel.'])[~partial]
-                sts['SPARC'] = array(sts['SPARC'])[~partial]
+                # sts['STS Times'] = array(sts['STS Times'])[~partial]
+                # sts['Duration'] = array(sts['Duration'])[~partial]
+                # sts['Vertical Displacement'] = sts['Vertical Displacement'][~partial]
+                # sts['Max. Accel.'] = array(sts['Max. Accel.'])[~partial]
+                # sts['Min. Accel.'] = array(sts['Min. Accel.'])[~partial]
+                # sts['SPARC'] = array(sts['SPARC'])[~partial]
 
                 # save to hdf
                 key = 'Processed/Sit2Stand/{day}/Transfers/{param}'
                 for feat in sts:
-                    self.data = (key.format(day=day, param=feat), sts[feat])
+                    self.data = (key.format(day=day, param=feat), array(sts[feat])[~partial])
 
     def _integrate(self, vert_accel, dt, still_at_end):
         """
