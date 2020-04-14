@@ -201,7 +201,7 @@ class Detector(_BaseProcess):
                     dur_ = time[sts_end] - time[sts_start]
                     mx_ = filt_acc[sts_start:sts_end].max()
                     mn_ = filt_acc[sts_start:sts_end].min()
-                    vdisp_ = v_pos[sts_end] - v_pos[sts_start]
+                    vdisp_ = v_pos[t_end_i] - v_pos[t_start_i]
                     sal_, *_ = self.sparc(norm(raw_acc[sts_start:sts_end], axis=1), 1 / dt)
 
                     sts['STS Times'].append([time[sts_start], time[sts_end]])
