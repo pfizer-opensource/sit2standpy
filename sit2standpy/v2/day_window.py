@@ -43,7 +43,7 @@ class WindowDays(_BaseProcess):
         iend = 10  # set so can reference in the i=0 loop
         for i in range(n_days):
             istart = argmin(abs(utime[iend-10:] - day_start.timestamp())) + iend - 10
-            iend = argmin(abs(utime[istart:] - day_end.timestamp())) + istart
+            iend = argmin(abs(utime[istart:] - day_end.timestamp())) + istart + 1
 
             self.data = (PROC.format(day_n=i+1, value='Indices'), array([istart, iend]))
 
