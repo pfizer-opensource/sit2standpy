@@ -161,7 +161,7 @@ class Detector(_BaseProcess):
                     neg_zc = append(where(diff(sign(v_vel)) < 0)[0], v_vel.size - 1) + end_still
 
                 # make sure the velocity is high enough to indicate a peak
-                if v_vel[ppk - prev_int_start] < self.thresh['transition_velocity']:  # index gets velocity STS
+                if v_vel[ppk - prev_int_start] < self.thresh['transition velocity']:  # index gets velocity STS
                     continue
 
                 if self.stillness_constraint:
