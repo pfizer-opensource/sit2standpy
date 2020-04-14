@@ -6,7 +6,7 @@ Lukas Adamowicz
 Pfizer
 """
 
-from numpy import ceil, log2, abs, where, diff, sum, insert, append, arange, sign, median, sqrt, array
+from numpy import ceil, log2, abs, where, diff, sum, insert, append, arange, sign, median, sqrt, array, mean
 from numpy.linalg import norm
 from scipy.signal import butter, sosfiltfilt, detrend
 from scipy.integrate import cumtrapz
@@ -95,7 +95,12 @@ class Detector(_BaseProcess):
 
     def _call(self):
         days = [i for i in self.data['Processed']['Sit2Stand'] if 'Day' in i]
-        dt = self.data['Sensors']['Lumbar']['dt']
+        # compute the sampling frequency if necessary
+        if 'dt' in self.data['Sensors']['Lumbar']:
+            dt = self.data['Sensors']['Lumbar']
+        else:
+            dt = mean(diff(self.data['Sensors']['Lumbar']['Unix Time'][:100]))
+            self.data = ('Sensors/Lumbar/dt', dt)  # save for future use
 
         feats = ['STS Times', 'Duration', 'Vertical Displacement', 'Max. Accel.', 'Min. Accel.', 'SPARC']
 
