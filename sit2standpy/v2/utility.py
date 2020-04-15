@@ -12,6 +12,9 @@ import h5py
 import udatetime as udt
 
 
+__all__ = ['tabulate_results']
+
+
 def tabulate_results(results, csv_path, method='stillness'):
     """
     Tabulate the results as calculated by the sequential pipeline.
