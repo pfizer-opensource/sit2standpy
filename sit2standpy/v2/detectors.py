@@ -12,7 +12,7 @@ from scipy.signal import butter, sosfiltfilt, detrend
 from scipy.integrate import cumtrapz
 from scipy.fftpack import fft
 
-from sit2standpy.utility import get_stillness
+from sit2standpy.v2.utility import get_stillness
 from sit2standpy.v2.base import _BaseProcess, DATA, PROC
 
 

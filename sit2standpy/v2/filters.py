@@ -8,7 +8,7 @@ from scipy.signal import butter, sosfiltfilt, find_peaks
 from warnings import warn
 
 from sit2standpy.v2.base import _BaseProcess, PROC, DATA
-from sit2standpy.utility import mov_stats
+from sit2standpy.v2.utility import mov_stats
 
 
 __all__ = ['AccelerationFilter']
