@@ -6,8 +6,72 @@ Lukas Adamowicz
 Pfizer
 """
 
-from numpy import zeros, ceil, mean, std, around, gradient, where, diff, insert, append
+from numpy import zeros, ceil, mean, std, around, gradient, where, diff, insert, append, array, savetxt
 from numpy.lib import stride_tricks
+import h5py
+import udatetime as udt
+
+
+def tabulate_results(results, csv_path, method='stillness'):
+    """
+    Tabulate the results as calculated by the sequential pipeline.
+
+    Parameters
+    ----------
+    results : {dict, str}
+        Either a dictionary of the results, or the path to the h5 file where the results were stored.
+    csv_path : str
+        Path to save the tabular data at
+    method : {'stillness', 'displacement'}, optional
+        Which method to tabulate results for. Default is 'stillness'.
+    """
+    # get the results
+    days, times, duration, vdisp, mxa, mna, sparc = [], [], [], [], [], [], []
+    mtd = f'{method.capitalize()} Method'
+    if isinstance(results, dict):
+        day_list = [i for i in results['Processed']['Sit2Stand'] if 'Day' in i]
+
+        for day in day_list:
+            days.extend([int(day[4:])] * results['Processed']['Sit2Stand'][day][mtd]['STS Times'].shape[0])
+            times.extend(results['Processed']['Sit2Stand'][day][mtd]['STS Times'])
+            duration.extend(results['Processed']['Sit2Stand'][day][mtd]['Duration'])
+            vdisp.extend(results['Processed']['Sit2Stand'][day][mtd]['Vertical Displacement'])
+            mxa.extend(results['Processed']['Sit2Stand'][day][mtd]['Max. Accel.'])
+            mna.extend(results['Processed']['Sit2Stand'][day][mtd]['Min. Accel.'])
+            sparc.extend(results['Processed']['Sit2Stand'][day][mtd]['SPARC'])
+    else:
+        with h5py.File(results, 'r') as f:
+            day_list = [i for i in f['Processed/Sit2Stand'] if 'Day' in i]
+
+            for day in day_list:
+                days.extend([int(day[4:])] * f[f'Processed/Sit2Stand/{day}/{mtd}/STS Times'].shape[0])
+                times.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/STS Times'])
+                duration.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/Duration'])
+                vdisp.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/Vertical Displacement'])
+                mxa.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/Max. Accel.'])
+                mna.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/Min. Accel.'])
+                sparc.extend(f[f'Processed/Sit2Stand/{day}/{mtd}/SPARC'])
+
+    table = zeros((len(days), 12), dtype='object')
+    table[:, 0] = days
+    table[:, 1:3] = array(times)
+    table[:, 7] = duration
+    # table[:, 8] = vdisp
+    table[:, 9] = mxa
+    table[:, 10] = mna
+    table[:, 11] = sparc
+
+    for i, ts in enumerate(table[:, 1]):
+        dt = udt.utcfromtimestamp(ts)
+        table[i, 3] = dt.strftime('%Y-%m-%d %H:%M:%S.%f')
+        table[i, 4] = dt.hour
+        table[i, 5] = dt.minute
+        table[i, 6] = dt.weekday() >= 5  # is the day a weekend. 0=Monday, 6=Sunday
+
+    hdr = 'Day,Start Unix Time,End Unix Time,Start Time,Hour,Minute,Weekend,Duration,Vertical Displacement,' \
+          'Max. Accel.,Min. Accel., SPARC'
+
+    savetxt(csv_path, table, header=hdr)
 
 
 def mov_stats(seq, window):
