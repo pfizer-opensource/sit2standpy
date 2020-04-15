@@ -48,7 +48,34 @@ Automated tests can be run with ``pytest`` through the terminal:
 pytest --pyargs sit2standpy.tests -v
 ```
 
-## Usage
+To run the v2 interface tests:
+```shell script
+pytest --pyargs sit2standpy.v2.tests -v
+```
+
+## V2 Interface
+
+Starting with version 1.1.0 a new "v2" interface is available alongside the old interface. Following a sequential
+pipeline layout, a basic usage example is:
+
+```python
+import sit2standpy as s2s
+
+# transform the data into the appropriate format for H5 or dictionary
+data = data_transform_function(acceleration_data)
+
+sequence = s2s.v2.Sequential()
+sequence.add(WindowDays(hours=[8, 20]))  # window the data into days using only the hours from 8:00 to 20:00
+sequence.add(AccelerationFilter())  # Do the initial filtering and processing required
+sequence.add(Detector(stillness_constraint=True))  # Detect the transitions using the stillness constraint
+
+sequence.predict(data)  # predict and save the results into data
+
+s2s.v2.tabulate_results(data, path_to_csv_output, method='stillness')  # tabulate the results to a csv for easy reading
+```
+
+
+## Old Usage
 
 Basic use is accomplished through the ``Sit2Stand`` object:
 
