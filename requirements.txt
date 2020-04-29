@@ -1,5 +1,0 @@
-numpy
-pandas
-PyWavelets
-scipy
-udatetime
