@@ -73,8 +73,8 @@ def tabulate_results(results, csv_path, method='stillness'):
 
     hdr = 'Day,Start Unix Time,End Unix Time,Start Time,Hour,Minute,Weekend,Duration,Vertical Displacement,' \
           'Max. Accel.,Min. Accel., SPARC'
-
-    savetxt(csv_path, table, header=hdr)
+    fmt = '%d, %f, %f, %s, %i, %i, %s, %f, %f, %f, %f, %f'
+    savetxt(csv_path, table, header=hdr, fmt=fmt)
 
 
 def mov_stats(seq, window):
