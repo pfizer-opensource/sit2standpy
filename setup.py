@@ -24,7 +24,7 @@ setuptools.setup(
     package_data={'sit2standpy': ['data/**']},
     packages=setuptools.find_packages(),
     license='MIT',
-    python_requires='>=3.6',
+    python_requires='>=3.7',
     install_requires=[
         'numpy',
         'scipy',
