@@ -14,8 +14,9 @@ installation instructions, and usage examples.
 
 ## Requirements
 
-- Python >= 3.6
-- Numpy 
+- Python >= 3.7
+- Numpy
+- pandas
 - Scipy 
 - pywavelets
 - udatetime
