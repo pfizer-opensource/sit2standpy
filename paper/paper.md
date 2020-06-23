@@ -54,7 +54,7 @@ pip install sit2standpy --no-deps  # installation without checking for installed
 
 Sit2StandPy requires the following Python packages:
 
-- Python >=3.6
+- Python >=3.7
 - NumPy - [@numpy]
 - SciPy - [@scipy]
 - pandas - [@pandas]

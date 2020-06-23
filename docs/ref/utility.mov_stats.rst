@@ -1,6 +1,6 @@
-pysit2stand.mov_stats
+sit2standpy.mov_stats
 --------------------------------
 
-.. currentmodule:: pysit2stand
+.. currentmodule:: sit2standpy
 
 .. autofunction:: mov_stats

@@ -1,7 +1,7 @@
-pysit2stand.detectors.Displacement
+sit2standpy.detectors.Displacement
 ----------------------------------
 
-.. currentmodule:: pysit2stand.detectors
+.. currentmodule:: sit2standpy.detectors
 
 .. autoclass:: Displacement
     :members:

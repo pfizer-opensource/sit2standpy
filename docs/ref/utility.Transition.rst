@@ -1,7 +1,7 @@
-pysit2stand.Transition
+sit2standpy.Transition
 ----------------------
 
-.. currentmodule:: pysit2stand
+.. currentmodule:: sit2standpy
 
 .. autoclass:: Transition
     :members:

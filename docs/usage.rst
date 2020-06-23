@@ -1,4 +1,4 @@
-.. pysit2stand usage
+.. sit2standpy usage
 
 =======================================
 Usage examples
@@ -7,11 +7,11 @@ Usage examples
 Basic Use
 ---------
 
-Basic usage of ``PySit2Stand`` to detect transitions in sample data:
+Basic usage of ``Sit2StandPy`` to detect transitions in sample data:
 
 .. code-block:: python
 
-    >>> import pysit2stand as s2s
+    >>> import sit2standpy as s2s
     >>> import numpy as np  # importing sample data
     >>> from sys import version_info
     >>> if version_info < (3, 7):
@@ -21,10 +21,10 @@ Basic usage of ``PySit2Stand`` to detect transitions in sample data:
     >>>
     >>> # locate the sample data and load it (depending on python version)
     >>> if version_info < (3, 7):
-    >>>     file_path = resource_filename('pysit2stand', 'data/sample.csv')
+    >>>     file_path = resource_filename('sit2standpy', 'data/sample.csv')
     >>>     data = np.loadtxt(file_path, delimiter=',')
     >>> else:
-    >>>     with resources.path('pysit2stand.data', 'sample.csv') as file_path:
+    >>>     with resources.path('sit2standpy.data', 'sample.csv') as file_path:
     >>>         data = np.loadtxt(file_path, delimiter=',')
     >>>
     >>> # separate the stored sample data
@@ -47,16 +47,16 @@ Basic usage of ``PySit2Stand`` to detect transitions in sample data:
 Advanced Examples
 -----------------
 
-Using :meth:`pysit2stand.Sit2Stand` automatically does all the preprecessing, filtering, and sit-to-stand transition
+Using :meth:`sit2standpy.Sit2Stand` automatically does all the preprecessing, filtering, and sit-to-stand transition
 detection for the user. However, this can be broken up into the constituent parts - preprocessing, filtering, and
 detection.
 
 .. code-block:: python
 
-    >>> import pysit2stand as s2s
+    >>> import sit2standpy as s2s
     >>> from packages_for_importing_data import your_import_data_function
     >>>
-    >>> # due to the size of multi day files, no samples are provided with pysit2stand
+    >>> # due to the size of multi day files, no samples are provided with sit2standpy
     >>> accel, time = your_import_data_function()
     >>>
     >>> # PREPROCESSING : conversion of timestamps, and windowing the data

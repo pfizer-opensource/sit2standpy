@@ -1,7 +1,7 @@
-pysit2stand.TransitionQuantifier
+sit2standpy.TransitionQuantifier
 --------------------------------
 
-.. currentmodule:: pysit2stand
+.. currentmodule:: sit2standpy
 
 .. autoclass:: TransitionQuantifier
     :members:
