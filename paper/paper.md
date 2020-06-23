@@ -8,18 +8,20 @@ tags:
   - Accelerometer
   - Inertial Sensors
   - Wearable Sensors
-  - IMU
   - Human Motion
   - Activity Recognition
 authors:
   - name: Lukas Adamowicz
     affiliation: 1
+ - name: Shyamal Patel
+    affiliation: 1
 affiliations:
  - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
    index: 1
-date: 4 September, 2019
+date: 14 November, 2019
 bibliography: paper.bib
 ---
+
 
 # Summary
 
