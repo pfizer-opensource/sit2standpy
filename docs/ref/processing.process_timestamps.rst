@@ -1,6 +1,6 @@
-pysit2stand.process_timestamps
+sit2standpy.process_timestamps
 ------------------------------
 
-.. currentmodule:: pysit2stand
+.. currentmodule:: sit2standpy
 
 .. autofunction:: process_timestamps

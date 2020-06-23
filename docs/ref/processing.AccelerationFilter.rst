@@ -1,7 +1,7 @@
-pysit2stand.AccelerationFilter
+sit2standpy.AccelerationFilter
 ------------------------------
 
-.. currentmodule:: pysit2stand
+.. currentmodule:: sit2standpy
 
 .. autoclass:: AccelerationFilter
     :members:

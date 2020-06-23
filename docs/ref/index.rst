@@ -1,4 +1,4 @@
-.. pysit2stand api reference
+.. sit2standpy api reference
 
 API Reference
 =============

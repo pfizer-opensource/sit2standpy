@@ -1,7 +1,7 @@
-.. pysit2stand core functions and classes
-.. currentmodule:: pysit2stand
+.. Sit2StandPy core functions and classes
+.. currentmodule:: Sit2StandPy
 
-pysit2stand.Sit2Stand
+Sit2StandPy.Sit2Stand
 ---------------------
 
 .. autoclass:: Sit2Stand

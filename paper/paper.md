@@ -8,18 +8,20 @@ tags:
   - Accelerometer
   - Inertial Sensors
   - Wearable Sensors
-  - IMU
   - Human Motion
   - Activity Recognition
 authors:
   - name: Lukas Adamowicz
     affiliation: 1
+  - name: Shyamal Patel
+    affiliation: 1
 affiliations:
- - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
-   index: 1
-date: 4 September, 2019
+  - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
+    index: 1
+date: 23 June, 2020
 bibliography: paper.bib
 ---
+
 
 # Summary
 
@@ -52,7 +54,7 @@ pip install sit2standpy --no-deps  # installation without checking for installed
 
 Sit2StandPy requires the following Python packages:
 
-- Python >=3.6
+- Python >=3.7
 - NumPy - [@numpy]
 - SciPy - [@scipy]
 - pandas - [@pandas]

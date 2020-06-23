@@ -1,8 +1,8 @@
-.. pysit2stand detectors
+.. sit2standpy detectors
 .. currentmodule:: pysit2stand
 
 
-pysit2stand.detectors
+sit2standpy.detectors
 ---------------------
 
 .. toctree::

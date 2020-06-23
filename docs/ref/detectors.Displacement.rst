@@ -1,7 +1,7 @@
-pysit2stand.detectors.Stillness
+sit2standpy.detectors.Stillness
 -------------------------------
 
-.. currentmodule:: pysit2stand.detectors
+.. currentmodule:: sit2standpy.detectors
 
 .. autoclass:: Stillness
     :members:
