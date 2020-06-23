@@ -1,5 +1,5 @@
 ---
-title: 'PySit2Stand: Python package for Sit-to-Stand transition detection and quantification'
+title: 'Sit2StandPy: An Open-Source Python Package for Detecting and Quantifying Sit-to-Stand Transitions Using an Accelerometer on the Lower Back'
 tags:
   - Python
   - Biomechanics
@@ -23,37 +23,40 @@ bibliography: paper.bib
 
 # Summary
 
-Digital medicine is driven by novel algorithms that analyze signals to drive digital biomarker development. At-home continuous monitoring has been greatly enhanced by the use of wearable sensors, which provide raw inertial data about human movement. Sit-to-stand transitions are particularly important due to their long-time clinical use in assessing
-disease and disorder states, such as Parkinson's Disease [@buckley:2008] and knee Osteoarthritis [@bolink:2012], and the strength requirements for populations with movement limitations. While most previous works have focuses on either in-clinic applications or the use of multiple sensors, this algorithm works at-home, as well as in-clinic, and uses only the acceleration data from a single sensor with unconstrained orientation. The practicality of a single-accelerometer approach, coupled with the up to three times as long recording time over a full inertial measurement unit (accelerometer and gyroscope) and the unconstrained orientation, promote this this approach for long-term, continuous, at-home monitoring.
+Sit-to-stand transitions have been used to assess mobility for a broad range of conditions, such as Parkinson's Disease [@buckley:2008] and knee osteoarthritis [@bolink:2012]. Assessments are typically performed in the clinic using timed performance tests like the timed-up-and-go [@nguyen:2015; @nguyen:2017] and chair stand tests [@guralnik:1994]. While these assessment tools have demonstrated good psychometric properties, they have two key limitations: (1) assessments are performed episodically as they need to be administered by trained examiners, and (2) assessments performed in the clinic might not provide an adequate measure of real-world mobility. Therefore, there is a growing interest [@pham:2018; @martinez-hernandez:2019] in the use of wearable devices to detect sit-to-stand transitions that occur during daily life and quantify the quality of mobility during these transitions. 
 
-``PySit2Stand`` is an open source Python package that uses novel heuristics-based single-accelerometer algorithms to first detect Sit-to-Stand transitions from lumbar-mounted accelerometer data, and then provides quantitative metrics, including duration, maximum and minimum acceleration, and SPARC [@balasubramanian:2015], assessing the performance of the transitions. At its simplest, ``PySit2Stand`` takes raw accelerometer data with timestamps and returns detected sit-to-stand transitions. Data can be windowed by full days, or parts of days can be selected for each window (e.g. window from 8:00 to 20:00). Additionally, ``PySit2Stand`` can take advantage of multiple core CPUs with a parallel processing option, which provides run-time benefits both in the initial processing stages and in detecting the transitions.
+![Location of the wearable device on the lower back.\label{fig:sensor_loc}](sensor_location.png)
 
-Under this simple interface, there are several points of customization, which may aid in transition detection under specific conditions. Users maintain control, if desired, over filtering and initial pre-processing parameters and most detection parameters. Additionally, there are two options for the level of adherence to a requirement that stillness precede a valid transition, allowing better performance during clinic assessments or in home environments. A modular framework is employed that would allow for easy modification of parts of the algorithm to suit other specific requirements (such as adjusting the metrics that are extracted) while still keeping core elements of the algorithm intact.
+``Sit2StandPy`` is an open source Python package that implements novel heuristics-based algorithms to detect Sit-to-Stand transitions from accelerometer data captured using a single wearable device mounted on the lower back (\autoref{fig:sensor_loc}). For each detected transition, the package also calculates objective features to assess quality of the transition. Features include duration, maximum acceleration, minimum acceleration, and spectral arc length (SPARC) [@balasubramanian:2015]. While most previous works have focused on either in-clinic applications [@van_lummel:2013; @nguyen:2015; @nguyen:2017] or the use of multiple sensors [@nguyen:2015; @nguyen:2017], the algorithms in this package can handle data collected under free-living conditions as well as prescribed tasks (e.g. 30-second chair stand task), and it uses only the acceleration data from a single sensor on the lower back with unconstrained device orientation. The practicality of a single-accelerometer approach, which affords a long battery life and improved wearability, makes it well suited for long-term, continuous monitoring at home.
+
+![A high-level illustration of the input, output, and main processing steps of ``Sit2StandPy``.\label{fig:proc_steps}](alg-overview.png)
+
+As illustrated in \autoref{fig:proc_steps}, ``Sit2StandPy`` takes raw accelerometer data with timestamps as input and returns detected sit-to-stand transitions. Data can be windowed by full days, or parts of days can be selected for each window (e.g. window from 08:00 to 20:00). A high-level interface is provided, which allows the user to access all adjustable parameters. Users provide raw data as input and get detected transitions along with the computed features as output. Additionally, the lower-level methods that are called during the detection are available as well for more fine-grained control. 
+
+With this framework, users can control many parameters of transition detection. In addition, the separation of processing steps and modularity of the sub-processes allows for easy customization if desired. For example, users can easily customize functions for generating additional features to assess quality of a transition.
 
 
 # Current Work
 
-``PySit2Stand`` was validated, and used to compute the results presented in [@adamowicz:2019]. Detailed background and
-presentation of the methods can be found there as well.
+The algorithms implemented in ``Sit2StandPy`` have been validated in healthy young and old adults as well as in older adults with Parkinson’s disease. Please refer to [@adamowicz:2020] for a detailed description of algorithms and results.
 
 # Availability
 
-``PySit2Stand`` is distributed under the MIT License and is published on PyPI, the Python Package Index, and can be installed by running the following in the terminal:
+``Sit2StandPy`` is distributed under the MIT License and is published on PyPI, the Python Package Index, and can be installed by running the following in the terminal:
 
 ```shell-script
-pip install pysit2stand  # install with checking for dependencies
+pip install sit2standpy  # install with checking for dependencies
 # or
-pip install pysit2stand --no-deps  # installation without checking for installed dependencies
+pip install sit2standpy --no-deps  # installation without checking for installed dependencies
 ```
 
-PySit2Stand requires the following Python packages:
+Sit2StandPy requires the following Python packages:
 
 - Python >=3.6
 - NumPy - [@numpy]
 - SciPy - [@scipy]
 - PyWavelets - [@pywavelets]
 
-``PySit2Stand`` contains example code with sample data in its GitHub repository. Full documentation with usage examples, installation instructions, and API reference are all available at [https://pysit2stand.readthedocs.io/en/latest/](https://pysit2stand.readthedocs.io/en/latest/)
-
+``Sit2StandPy`` contains example code with sample data in its GitHub repository. Full documentation with usage examples, installation instructions, and API reference are all available at [https://sit2standpy.readthedocs.io/en/latest/](https://sit2standpy.readthedocs.io/en/latest/)
 
 # References
