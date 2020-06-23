@@ -55,7 +55,9 @@ Sit2StandPy requires the following Python packages:
 - Python >=3.6
 - NumPy - [@numpy]
 - SciPy - [@scipy]
+- pandas - [@pandas]
 - PyWavelets - [@pywavelets]
+- udatetime
 
 ``Sit2StandPy`` contains example code with sample data in its GitHub repository. Full documentation with usage examples, installation instructions, and API reference are all available at [https://sit2standpy.readthedocs.io/en/latest/](https://sit2standpy.readthedocs.io/en/latest/)
 

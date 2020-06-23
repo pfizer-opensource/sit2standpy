@@ -3,3 +3,4 @@ numpydoc
 pandas
 scipy
 pywavelets
+h5py
