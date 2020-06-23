@@ -13,12 +13,12 @@ tags:
 authors:
   - name: Lukas Adamowicz
     affiliation: 1
- - name: Shyamal Patel
+  - name: Shyamal Patel
     affiliation: 1
 affiliations:
- - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
-   index: 1
-date: 14 November, 2019
+  - name: Pfizer, Inc. 610 Main Street, Cambridge MA, USA 02139
+    index: 1
+date: 23 June, 2020
 bibliography: paper.bib
 ---
 
