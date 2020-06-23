@@ -47,7 +47,7 @@ Basic usage of ``Sit2StandPy`` to detect transitions in sample data:
 Advanced Examples
 -----------------
 
-Using :meth:`sit2standpy.Sit2Stand` automatically does all the preprecessing, filtering, and sit-to-stand transition
+Using :meth:`sit2standpy.Sit2Stand` automatically does all the preprocessing, filtering, and sit-to-stand transition
 detection for the user. However, this can be broken up into the constituent parts - preprocessing, filtering, and
 detection.
 
