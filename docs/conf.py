@@ -20,8 +20,8 @@ sys.path.insert(0, '/Users/adamol/Documents/STRYDE SitToStand/Sit to Stand Analy
 
 # -- Project information -----------------------------------------------------
 
-project = 'PySit2Stand'
-copyright = '2019, Lukas Adamowicz'
+project = 'Sit2StandPy'
+copyright = '2019-2020, Pfizer'
 author = 'Lukas Adamowicz'
 
 # The short X.Y version
@@ -97,7 +97,7 @@ html_static_path = ['_static']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'PySit2Stand Documentation'
+html_title = 'Sit2StandPy Documentation'
 
 # Custom sidebar templates, must be a dictionary that maps document names
 # to template names.
@@ -113,7 +113,7 @@ html_sidebars = {'**': ['globaltoc.html', 'relations.html', 'searchbox.html']}
 # -- Options for HTMLHelp output ---------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'pysit2standdoc'
+htmlhelp_basename = 'sit2standpydoc'
 
 
 # -- Options for LaTeX output ------------------------------------------------
