@@ -5,7 +5,8 @@ Lukas Adamowicz
 Pfizer
 2019
 """
-from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std, argwhere, append, insert
+from numpy import around, mean, diff, timedelta64, arange, logical_and, sum, std, argwhere, append, insert, \
+    ascontiguousarray
 from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
@@ -124,7 +125,7 @@ class AccelerationFilter:
 
         # setup the filter, and filter the acceleration magnitude
         fc = butter(self.lp_ord, 2 * self.lp_cut / fs, btype='low')
-        macc_f = filtfilt(fc[0], fc[1], macc)
+        macc_f = ascontiguousarray(filtfilt(fc[0], fc[1], macc))
 
         if self.method == 'dwt':
             # deconstruct the filtered acceleration magnitude
