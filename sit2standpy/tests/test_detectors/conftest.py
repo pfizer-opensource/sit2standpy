@@ -18,7 +18,7 @@ def integrate_data():
 
 @fixture(scope='package')
 def stillness():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             still = file['stillness'][()]
 
@@ -27,7 +27,7 @@ def stillness():
 
 @fixture(scope='package')
 def still_starts():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             starts = file['starts'][()]
 
@@ -36,7 +36,7 @@ def still_starts():
 
 @fixture(scope='package')
 def still_stops():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             stops = file['stops'][()]
 

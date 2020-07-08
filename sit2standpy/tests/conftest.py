@@ -1,6 +1,6 @@
 from pytest import fixture
 from importlib import resources
-from numpy import loadtxt
+from numpy import loadtxt, ascontiguousarray
 import h5py
 
 
@@ -13,7 +13,7 @@ def raw_accel():
     with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         acc = loadtxt(file_path, dtype=float, delimiter=',', usecols=(1, 2, 3))
 
-    return acc
+    return ascontiguousarray(acc)
 
 
 @fixture(scope='package')
@@ -22,7 +22,7 @@ def time():
     with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         time = loadtxt(file_path, dtype=float, delimiter=',', usecols=0)
 
-    return time
+    return ascontiguousarray(time)
 
 
 # -------------------------------------------------------------------------------------------------
@@ -31,7 +31,7 @@ def time():
 @fixture(scope='package')
 def filt_accel_rm():
     # pull the filtered data
-    with resources.path('sit2standpy.data', '.filter_results_rm.csv') as file_path:
+    with resources.path('sit2standpy.data', 'filter_results_rm.csv') as file_path:
         filt_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=0)
 
     return filt_accel
@@ -40,7 +40,7 @@ def filt_accel_rm():
 @fixture(scope='package')
 def rm_accel_rm():
     # pull the rolling mean acceleration
-    with resources.path('sit2standpy.data', '.filter_results_rm.csv') as file_path:
+    with resources.path('sit2standpy.data', 'filter_results_rm.csv') as file_path:
         rm_accel = loadtxt(file_path, dtype=float, delimiter=',', usecols=1)
 
     return rm_accel
@@ -49,7 +49,7 @@ def rm_accel_rm():
 @fixture(scope='package')
 def power_rm():
     # pull the power measure
-    with resources.path('sit2standpy.data', '.filter_results_rm.csv') as file_path:
+    with resources.path('sit2standpy.data', 'filter_results_rm.csv') as file_path:
         power = loadtxt(file_path, dtype=float, delimiter=',', usecols=2)
 
     return power
@@ -58,7 +58,7 @@ def power_rm():
 @fixture(scope='package')
 def power_peaks_rm():
     # pull the power peaks
-    with resources.path('sit2standpy.data', '.filter_results_rm.csv') as file_path:
+    with resources.path('sit2standpy.data', 'filter_results_rm.csv') as file_path:
         power_peaks = loadtxt(file_path, dtype=int, delimiter=',', usecols=3)
 
     power_peaks = power_peaks[power_peaks != -1]  # remove filler values
@@ -71,7 +71,7 @@ def power_peaks_rm():
 # -------------------------------------------------------------------------------------------------
 @fixture(scope='package')
 def still_times():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Stillness']['times'][()]
     return res
@@ -79,7 +79,7 @@ def still_times():
 
 @fixture(scope='package')
 def still_durations():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Stillness']['durations'][()]
     return res
@@ -87,7 +87,7 @@ def still_durations():
 
 @fixture(scope='package')
 def still_max_acc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Stillness']['max_acc'][()]
     return res
@@ -95,7 +95,7 @@ def still_max_acc():
 
 @fixture(scope='package')
 def still_min_acc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Stillness']['min_acc'][()]
     return res
@@ -103,7 +103,7 @@ def still_min_acc():
 
 @fixture(scope='package')
 def still_sparc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Stillness']['sparc'][()]
     return res
@@ -114,7 +114,7 @@ def still_sparc():
 # -------------------------------------------------------------------------------------------------
 @fixture(scope='module')
 def disp_times():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Displacement']['times'][()]
     return res
@@ -122,7 +122,7 @@ def disp_times():
 
 @fixture(scope='module')
 def disp_durations():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Displacement']['durations'][()]
     return res
@@ -130,7 +130,7 @@ def disp_durations():
 
 @fixture(scope='module')
 def disp_max_acc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Displacement']['max_acc'][()]
     return res
@@ -138,7 +138,7 @@ def disp_max_acc():
 
 @fixture(scope='module')
 def disp_min_acc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Displacement']['min_acc'][()]
     return res
@@ -146,7 +146,7 @@ def disp_min_acc():
 
 @fixture(scope='module')
 def disp_sparc():
-    with resources.path('sit2standpy.data', '.detector_results.h5') as file_name:
+    with resources.path('sit2standpy.data', 'detector_results.h5') as file_name:
         with h5py.File(file_name, 'r') as file:
             res = file['Displacement']['sparc'][()]
     return res

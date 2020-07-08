@@ -15,7 +15,7 @@ setuptools.setup(
     description="Sit-to-stand detection using a single lumbar-mounted accelerometer.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/PfizerRD/pysit2stand",
+    url="https://github.com/PfizerRD/sit2standpy",
     download_url="https://pypi.org/project/sit2standpy/",
     project_urls={
         "Documentation": "https://sit2standpy.readthedocs.io/en/latest/"
