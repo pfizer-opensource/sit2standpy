@@ -21,7 +21,7 @@ setuptools.setup(
         "Documentation": "https://sit2standpy.readthedocs.io/en/latest/"
     },
     include_pacakge_data=True,
-    package_data={'sit2standpy': ['data/**', 'data/.**']},
+    package_data={'sit2standpy': ['data/**']},
     packages=setuptools.find_packages(),
     license='MIT',
     python_requires='>=3.7',
