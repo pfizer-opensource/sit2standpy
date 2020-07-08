@@ -1,6 +1,6 @@
 from pytest import fixture
 from importlib import resources
-from numpy import loadtxt
+from numpy import loadtxt, ascontiguousarray
 import h5py
 
 
@@ -13,7 +13,7 @@ def raw_accel():
     with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         acc = loadtxt(file_path, dtype=float, delimiter=',', usecols=(1, 2, 3))
 
-    return acc
+    return ascontiguousarray(acc)
 
 
 @fixture(scope='package')
@@ -22,7 +22,7 @@ def time():
     with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         time = loadtxt(file_path, dtype=float, delimiter=',', usecols=0)
 
-    return time
+    return ascontiguousarray(time)
 
 
 # -------------------------------------------------------------------------------------------------
