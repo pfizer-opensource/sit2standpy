@@ -63,4 +63,7 @@ Sit2StandPy requires the following Python packages:
 
 ``Sit2StandPy`` contains example code with sample data in its GitHub repository. Full documentation with usage examples, installation instructions, and API reference are all available at [https://sit2standpy.readthedocs.io/en/latest/](https://sit2standpy.readthedocs.io/en/latest/)
 
+# Acknowledgements
+The Digital Medicine & Translational Imaging group at Pfizer, Inc supported the development of this package.
+
 # References
