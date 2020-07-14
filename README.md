@@ -69,9 +69,9 @@ import sit2standpy as s2s
 data = <data_transform/loader_function>(acceleration_data)
 
 sequence = s2s.v2.Sequential()
-sequence.add(WindowDays(hours=[8, 20]))  # window the data into days using only the hours from 8:00 to 20:00
-sequence.add(AccelerationFilter())  # Do the initial filtering and processing required
-sequence.add(Detector(stillness_constraint=True))  # Detect the transitions using the stillness constraint
+sequence.add(s2s.v2.WindowDays(hours=[8, 20]))  # window the data into days using only the hours from 8:00 to 20:00
+sequence.add(s2s.v2.AccelerationFilter())  # Do the initial filtering and processing required
+sequence.add(s2s.v2.Detector(stillness_constraint=True))  # Detect the transitions using the stillness constraint
 
 sequence.predict(data)  # predict and save the results into data
 
