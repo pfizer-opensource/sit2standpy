@@ -140,11 +140,8 @@ def get_stillness(filt_accel, dt, window, gravity, thresholds):
     gravity : float
         Gravitational acceleration, as measured by the sensor during static periods.
     thresholds : dict
-        Dictionary of the 4 thresholds to be used:
-        - accel moving avg
-        - accel moving std
-        - jerk moving avg
-        - jerk moving std
+        Dictionary of the 4 thresholds to be used - accel moving avg, accel moving std, 
+        jerk moving avg, and jerk moving std.  
         Acceleration average thresholds should be for difference from gravitional acceleration.
 
     Returns

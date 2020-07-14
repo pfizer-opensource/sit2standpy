@@ -45,4 +45,5 @@ Contents
 
    installation
    usage
+   refv2/index
    ref/index
