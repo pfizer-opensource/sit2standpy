@@ -4,8 +4,39 @@
 Usage examples
 =======================================
 
-Basic Use
----------
+Basic Use (New/v2 API)
+----------------------
+
+Basic usage of ``Sit2StandPy`` to detect transitions in the sample data, using the version 2 API
+
+.. code-block:: python
+
+    >>> import sit2standpy as s2s
+
+    >>> # transform the data into the appropriate format for H5 or dictionary
+    >>> # note that "data_transform_function" is your own function to achieve the
+    >>> # appropriate format
+    >>> # if you are looking for a quick example data loader function, you can
+    >>> # use the one at
+    >>> # https://gist.github.com/LukasAdamowicz/b8481ef32e4beeb77c80f29f34c8045e
+    >>> data = <data_transform/loader_function>(acceleration_data)
+    >>>
+    >>> sequence = s2s.v2.Sequential()
+    >>> # window the data into days using only the hours from 8:00 to 20:00
+    >>> sequence.add(s2s.v2.WindowDays(hours=[8, 20]))
+    >>> # Do the initial filtering and processing required
+    >>> sequence.add(s2s.v2.AccelerationFilter())
+    >>> # Detect the transitions using the stillness constraint
+    >>> sequence.add(s2s.v2.Detector(stillness_constraint=True))
+    >>>
+    >>> sequence.predict(data)  # predict and save the results into data
+    >>>
+    >>> # tabulate the results to a csv for easy reading
+    >>> s2s.v2.tabulate_results(data, path_to_csv_output, method='stillness')
+
+
+Basic Use (Old/v1 API)
+----------------------
 
 Basic usage of ``Sit2StandPy`` to detect transitions in sample data:
 
@@ -44,8 +75,8 @@ Basic usage of ``Sit2StandPy`` to detect transitions in sample data:
     >>> # print the list of Transition objects, stored as a dictionary with the time they occurred
     >>> print(SiSt)
 
-Advanced Examples
------------------
+Advanced Examples (Old/v1 API)
+------------------------------
 
 Using :meth:`sit2standpy.Sit2Stand` automatically does all the preprocessing, filtering, and sit-to-stand transition
 detection for the user. However, this can be broken up into the constituent parts - preprocessing, filtering, and
@@ -80,6 +111,3 @@ detection.
     >>>     day_sist = still_detect.apply(acc_win[day], filt_acc[day], rm_acc[day], timestamps[day], dt,
     >>>                                   power_peaks[day])
     >>>     sist.update(day_sist)
-
-
-

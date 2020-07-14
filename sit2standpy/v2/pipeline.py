@@ -48,9 +48,10 @@ class Sequential:
         The layout for the input H5 file or the dictionary must be as follows:
 
         * Sensors
-        |   * Lumbar
-        |       * Accelerometer
-        |       * Unix Timestamps [units=seconds]
+            * Lumbar
+                * Accelerometer
+                * Unix Time [units=seconds]
+        
         """
 
         for proc in self.procs:
