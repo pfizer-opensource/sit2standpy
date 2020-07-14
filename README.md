@@ -63,7 +63,10 @@ pipeline layout, a basic usage example is:
 import sit2standpy as s2s
 
 # transform the data into the appropriate format for H5 or dictionary
-data = data_transform_function(acceleration_data)
+# note that "data_transform_function" is your own function to achieve the appropriate format
+# if you are looking for a quick example data loader function, you can use the one at
+# https://gist.github.com/LukasAdamowicz/b8481ef32e4beeb77c80f29f34c8045e
+data = <data_transform/loader_function>(acceleration_data)
 
 sequence = s2s.v2.Sequential()
 sequence.add(WindowDays(hours=[8, 20]))  # window the data into days using only the hours from 8:00 to 20:00
@@ -94,7 +97,7 @@ if version_info < (3, 7):
     file_path = resource_filename('sit2standpy', 'data/sample.csv')
     data = np.loadtxt(file_path, delimiter=',')
 else:
-    with resources.path('sit2standpy', 'sample.csv') as file_path:
+    with resources.path('sit2standpy.data', 'sample.csv') as file_path:
         data = np.loadtxt(file_path, delimiter=',')
 
 # separate the stored sample data
