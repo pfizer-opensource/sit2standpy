@@ -37,11 +37,6 @@ As illustrated in \autoref{fig:proc_steps}, ``Sit2StandPy`` takes raw accelerome
 
 With this framework, users can control many parameters of transition detection. In addition, the separation of processing steps and modularity of the sub-processes allows for easy customization if desired. For example, users can easily customize functions for generating additional features to assess quality of a transition.
 
-
-# Current Work
-
-The algorithms implemented in ``Sit2StandPy`` have been validated in healthy young and old adults as well as in older adults with Parkinson’s disease. Please refer to [@adamowicz:2020] for a detailed description of algorithms and results.
-
 # Availability
 
 ``Sit2StandPy`` is distributed under the MIT License and is published on PyPI, the Python Package Index, and can be installed by running the following in the terminal:
