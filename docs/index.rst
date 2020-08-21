@@ -6,8 +6,10 @@
 Sit2StandPy: Automated Sit-to-Stand Transition Detection
 ========================================================
 
-[![DOI](https://joss.theoj.org/papers/10.21105/joss.02449/status.svg)](https://doi.org/10.21105/joss.02449)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.3988351.svg)](https://doi.org/10.5281/zenodo.3988351)
+.. image :: https://joss.theoj.org/papers/10.21105/joss.02449/status.svg
+   :target: https://doi.org/10.21105/joss.02449
+.. image:: https://zenodo.org/badge/DOI/10.5281/zenodo.3988351.svg
+   :target: https://doi.org/10.5281/zenodo.3988351
 
 ``Sit2StandPy`` is an open source Python package that uses novel algorithms to first detect Sit-to-Stand transitions
 from lumbar-mounted accelerometer data, and then provide quantitative metrics assessing the performance of the
