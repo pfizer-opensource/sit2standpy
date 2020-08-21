@@ -38,7 +38,7 @@ Sit2StandPy is open source software distributed under the MIT license.
 Papers
 ------
 .. [1] L. Adamowicz et al. "Assessment of Sit-to-Stand Transfers During Daily Life Using an Accelerometer on the Lower Back.'' IEEE Journal of Biomedical and Health Informatics. Under Review.
-.. [2] L. Adamowicz, S. Patel. "Sit2StandPy: An Open-Source Python Package for Detecting and Quantifying Sit-to-Stand Transitions Using an Accelerometer on the Lower Back.'' Journal of Open Source Software. Under Review.
+.. [2] L. Adamowicz, S. Patel. "Sit2StandPy: An Open-Source Python Package for Detecting and Quantifying Sit-to-Stand Transitions Using an Accelerometer on the Lower Back." Journal of Open Source Software. 5(52), 2449. Aug 2020. https://doi.org/10.21105/joss.02449
 
 
 Contents
