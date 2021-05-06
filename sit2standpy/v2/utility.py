@@ -9,7 +9,11 @@ Pfizer
 from numpy import zeros, ceil, mean, std, around, gradient, where, diff, insert, append, array, savetxt
 from numpy.lib import stride_tricks
 import h5py
-import udatetime as udt
+
+try:
+    import udatetime as datetime
+except (ImportError, ModuleNotFoundError):
+    from datetime import datetime
 
 
 __all__ = ['tabulate_results']
@@ -65,7 +69,7 @@ def tabulate_results(results, csv_path, method='stillness'):
     table[:, 11] = sparc
 
     for i, ts in enumerate(table[:, 1]):
-        dt = udt.utcfromtimestamp(ts)
+        dt = datetime.utcfromtimestamp(ts)
         table[i, 3] = dt.strftime('%Y-%m-%d %H:%M:%S.%f')
         table[i, 4] = dt.hour
         table[i, 5] = dt.minute

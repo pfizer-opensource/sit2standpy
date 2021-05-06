@@ -1,9 +1,13 @@
 """
 Windowing processes for windowing over days
 """
-import udatetime
-import datetime
+from datetime import timedelta
 from numpy import argmin, abs, array
+
+try:
+    import udatetime as datetime
+except (ImportError, ModuleNotFoundError):
+    from datetime import datetime
 
 from sit2standpy.v2.base import _BaseProcess, PROC, DATA
 
@@ -29,8 +33,8 @@ class WindowDays(_BaseProcess):
     def _call(self):
         utime = self.data['Sensors']['Lumbar']['Unix Time']
         # get the first timepoint to know which day to start and end with
-        time_sdt = udatetime.utcfromtimestamp(utime[0])
-        time_edt = udatetime.utcfromtimestamp(utime[-1])
+        time_sdt = datetime.utcfromtimestamp(utime[0])
+        time_edt = datetime.utcfromtimestamp(utime[-1])
 
         n_days = (time_edt.date() - time_sdt.date()).days
         if time_edt.hour > self._hours[0]:
@@ -47,5 +51,5 @@ class WindowDays(_BaseProcess):
 
             self.data = (PROC.format(day_n=i+1, value='Indices'), array([istart, iend]))
 
-            day_start += datetime.timedelta(days=1)
-            day_end += datetime.timedelta(days=1)
+            day_start += timedelta(days=1)
+            day_end += timedelta(days=1)

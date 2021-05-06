@@ -29,8 +29,7 @@ setuptools.setup(
         'numpy',
         'scipy',
         'pandas',
-        'pywavelets',
-        'udatetime'
+        'pywavelets'
     ],
     classifiers=[
         "Programming Language :: Python :: 3",

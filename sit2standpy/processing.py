@@ -11,8 +11,12 @@ from numpy.linalg import norm
 from scipy.signal import butter, filtfilt, find_peaks
 import pywt
 from pandas import to_datetime
-from udatetime import utcfromtimestamp
 from warnings import warn
+
+try:
+    import udatetime as datetime
+except (ImportError, ModuleNotFoundError):
+    from datetime import datetime
 
 from sit2standpy.utility import mov_stats
 
@@ -220,13 +224,13 @@ def process_timestamps(times, accel, time_units=None, conv_kw=None, window=False
     # convert using pandas
     if 'unit' in conv_kw:
         if conv_kw['unit'] == 'ms':
-            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e3])
+            timestamps = to_datetime([datetime.utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e3])
         elif conv_kw['unit'] == 'us':
-            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e6])
+            timestamps = to_datetime([datetime.utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e6])
         elif conv_kw['unit'] == 'ns':
-            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e9])
+            timestamps = to_datetime([datetime.utcfromtimestamp(t).replace(tzinfo=None) for t in times / 1e9])
         elif conv_kw['unit'] == 's':
-            timestamps = to_datetime([utcfromtimestamp(t).replace(tzinfo=None) for t in times])
+            timestamps = to_datetime([datetime.utcfromtimestamp(t).replace(tzinfo=None) for t in times])
     else:
         timestamps = to_datetime(times, **conv_kw)
 
